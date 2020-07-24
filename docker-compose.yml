@@ -17,14 +17,27 @@ services:
       - ./postgres/init:/docker-entrypoint-initdb.d
       - db-data:/var/lib/postgresql/data
   pleasanter-web:
-    ports:
-      - "80:80"
+#    ports:
+#      - "80:80"
     build:
       context: pleasanter/.
       args:
       # バージョンを指定
       # 1.1.3.2 : cea284d8c57f4794da821c76d5676d0078b30ae0
           - GIT_HASH=cea284d8c57f4794da821c76d5676d0078b30ae0
+  # 通信を暗号化
+  https-portal:
+    image: steveltn/https-portal:1
+    ports:
+      - '80:80'
+      - '443:443'
+    links:
+      - pleasanter-web
+    restart: always
+    environment:
+      DOMAINS: 'wordpress.example.com -> http://pleasanter-web'
+      # STAGE: 'production'
+      # FORCE_RENEW: 'true'
 
 volumes:
    db-data:
