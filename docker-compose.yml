@@ -36,12 +36,27 @@ services:
     restart: always
     environment:
       DOMAINS: 'wordpress.example.com -> http://pleasanter-web'
+      # 本番モードへ切り替え
       # STAGE: 'production'
+      # 証明書を強制的に再取得する
       # FORCE_RENEW: 'true'
+      # 容量設定
+      #  CLIENT_MAX_BODY_SIZE: 0  # これだと無制限
+      CLIENT_MAX_BODY_SIZE: 500M 
+      # HTTP強制
+      HSTS_MAX_AGE: 60 # 秒 
+      # ログ出力設定
+      ERROR_LOG: stdout
+      ACCESS_LOG: stderr
+      # 鍵は再利用
+    volumes:
+    - ssl_data:/var/lib/https-portal
 
 volumes:
-   db-data:
-     driver: local
+  db-data:
+   driver: local
+  ssl_data:
+   driver: local
     # Compose の外ですでに作成済みの volume を指定する場合は ture を設定する。
     # そうすると、 docker-compose up 時に Compose は volume を作成しようとしません。
     # かつ、指定した volume が存在しないとエラーを raise します。
