@@ -1,10 +1,14 @@
 version: "3.7"
 
+# 共通環境変数を定義
+x-var-db-data: &APP_DB_data "db-data:/var/lib/postgresql/data"
+x-var-db-arclog: &APP_DB_arclog "db-arclog:/var/lib/postgresql/arclog"
+
 services:
   postgres-db:
     build: postgres/.
-    container_name: db-container 
-    ports: 
+    container_name: db-container
+    ports:
       - "5432:5432"
     environment:
       - POSTGRES_USER=postgres
@@ -13,23 +17,44 @@ services:
       - POSTGRES_DB=testdb
       - DATABASE_HOST=localhost
       - DB_EXTENSION=pg_trgm
+    command: 'postgres -c config_file="/etc/postgresql.conf"'
     volumes:
       - ./postgres/init:/docker-entrypoint-initdb.d
-      - db-data:/var/lib/postgresql/data
+      - ./postgres/conf/postgresql.conf:/etc/postgresql.conf
+      - *APP_DB_data
+      - *APP_DB_arclog
   pleasanter-web:
     ports:
       - "80:80"
     build:
       context: pleasanter/.
       args:
-      # バージョンを指定
-      # 1.1.3.2 : cea284d8c57f4794da821c76d5676d0078b30ae0
-          - GIT_HASH=cea284d8c57f4794da821c76d5676d0078b30ae0
+        # バージョンを指定
+        # 1.1.3.2 : cea284d8c57f4794da821c76d5676d0078b30ae0
+        - GIT_HASH=cea284d8c57f4794da821c76d5676d0078b30ae0
+  cron-backup:
+    build:
+      context: cron-backup/.
+    volumes:
+      - *APP_DB_data
+      - *APP_DB_arclog
+      # 自動バックアップされた結果は「/var/db_backup」に格納される。
+      # コンテナの外からアクセスする場合は、このパスを外から見える所に配置しておく
+      - db-backup:/var/db_backup
+      # S3で自動バックアップする場合
+      # aws cliの設定を以下パスに行う。
+      # 存在しない場合はバックアップは行われない
+      #- ./cron-backup/config/aws-cli:/root/.aws/
 
 volumes:
-   db-data:
-     driver: local
+  db-data:
+    driver: local
     # Compose の外ですでに作成済みの volume を指定する場合は ture を設定する。
     # そうすると、 docker-compose up 時に Compose は volume を作成しようとしません。
     # かつ、指定した volume が存在しないとエラーを raise します。
     #external: true
+  db-arclog:
+    driver: local
+    # dbのバックアップ領域
+  db-backup:
+    driver: local
