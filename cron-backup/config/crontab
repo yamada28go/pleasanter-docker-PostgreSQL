@@ -1,0 +1,5 @@
+# 毎日3時にバックアップを行う
+0 3 * * * flock -n /tmp/pg_dumpall.lock /var/backup_sh/pg_dumpall.sh
+# 30分に1回ごとバックアップ
+*/30 * * * * flock -n /tmp/pg_rman.lock /var/backup_sh/pg_rman.sh
+

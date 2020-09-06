@@ -13,10 +13,10 @@ RUN apt update \
 	curl \
 	supervisor \
 	locales \
-	tzdata 	
+	tzdata
 RUN apt-get clean \
 	&& rm -rf /var/apt/cache/* /tmp/* /var/tmp/* \
-	&& locale-gen en_US.UTF-8
+	&& locale-gen ja_JP.UTF-8
 
 # 対象となるコードを取得
 RUN git clone https://github.com/implem/implem.Pleasanter.NetCore /home/Pleasanter.NetCore
@@ -33,6 +33,8 @@ RUN chmod 744 cmdnetcore/*.sh \
 # Fix
 # Linuxでビルドする場合、必要なファイルがコピーされなていので修正
 RUN cp -a Implem.Pleasanter/wwwroot/bundles publish/Implem.Pleasanter/wwwroot/
+
+RUN echo 'export LANG=ja_JP.UTF-8' >> ~/.bashrc
 
 EXPOSE 80 1433
 CMD ["/usr/bin/supervisord", "-n", "-c", "/usr/local/etc/supervisord.conf"]
