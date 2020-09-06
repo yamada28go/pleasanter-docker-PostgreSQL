@@ -24,8 +24,8 @@ services:
       - *APP_DB_data
       - *APP_DB_arclog
   pleasanter-web:
-    ports:
-      - "80:80"
+    #ports:
+    #  - "80:80"
     build:
       context: pleasanter/.
       args:
