@@ -52,5 +52,9 @@ RUN echo "*:*:*:*:mysecretpassword1234" > /root/.pgpass
 RUN chmod 600 .pgpass
 COPY ./shell/pg_dumpall.sh /var/backup_sh/pg_dumpall.sh
 COPY ./shell/pg_rman.sh /var/backup_sh/pg_rman.sh
+COPY ./shell/syncToS3.sh /var/backup_sh/syncToS3.sh
+RUN chmod +x /var/backup_sh/pg_dumpall.sh
+RUN chmod +x /var/backup_sh/pg_rman.sh
+RUN chmod +x /var/backup_sh/syncToS3.sh
 
 CMD busybox crond -l 2 -L /dev/stderr -f
