@@ -22,7 +22,7 @@ RUN  echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg m
   apt -y install postgresql-client-12
 
 # バックアップに使用するツール
-RUN apt-get -y install p7zip-full
+RUN apt-get -y install p7zip-full bc
 
 # pg_rmanのビルドツールをインストール
 WORKDIR /root
