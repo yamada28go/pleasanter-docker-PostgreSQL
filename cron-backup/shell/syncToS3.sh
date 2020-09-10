@@ -18,7 +18,9 @@ if [ -e $AWS_CONFIG ]; then
   source /root/.aws/S3Config.sh
 
   # 対象となるフォルダのファイル数を比較。
-  # 10%以上違っていたら、エラーなのでバックアップは実行しない
+  # 5%以上違っていたら、エラーなので指定されたディレクトリへのバックアップは実行しない。
+  # 新しく作った予備のs3ディレクトリにバックアップを行う。
+  #
   # 新規にインスタンスを立ち上げて、既存のバックアップはフォルダに対して、
   # 間違って上書きをしないように対応する。
 
@@ -39,10 +41,10 @@ if [ -e $AWS_CONFIG ]; then
     echo "start S3Sync default path"
     echo `date +%Y%m%d_%H-%M-%S` >> ${SAVEPATH_BASE}/S3SyncLog.txt
     flock -n /tmp/s3sync.lock /usr/local/bin/aws s3 sync $SAVEPATH_BASE s3://${S3_TARGET_BUCKET_NAME}/${S3_TARGET_DIRECTORY_NAME} --delete
-  
+
   else
 
-    # 5%以上ずれている場合、安全領域にコピーする
+    # 5%以上ずれている場合、新たに作った安全領域にコピーする
     echo "start S3Sync safe path"
     echo `date +%Y%m%d_%H-%M-%S` >> ${SAVEPATH_BASE}/S3SyncLog.txt
     flock -n /tmp/s3sync.lock /usr/local/bin/aws s3 sync $SAVEPATH_BASE s3://${S3_TARGET_BUCKET_NAME}/${S3_TARGET_DIRECTORY_NAME}-safe --delete
