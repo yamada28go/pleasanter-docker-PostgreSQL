@@ -9,10 +9,11 @@ ARG PG_VER=12
 ENV TZ=Asia/Tokyo
 
 # cronを入れる
-RUN apt-get update && apt-get -y install busybox-static
+RUN apt-get update && apt-get -y install busybox-static nkf
 
 # cron設定をコピー
 COPY ./config/crontab /var/spool/cron/crontabs/root
+RUN nkf -Lu --overwrite /var/spool/cron/crontabs/root
 
 # Postgress クライアントをインストール
 RUN apt -y install lsb-release wget gnupg2 &&\
@@ -53,8 +54,12 @@ RUN chmod 600 .pgpass
 COPY ./shell/pg_dumpall.sh /var/backup_sh/pg_dumpall.sh
 COPY ./shell/pg_rman.sh /var/backup_sh/pg_rman.sh
 COPY ./shell/syncToS3.sh /var/backup_sh/syncToS3.sh
+RUN nkf -Lu  --overwrite /var/backup_sh/pg_dumpall.sh
+RUN nkf -Lu  --overwrite /var/backup_sh/pg_rman.sh
+RUN nkf -Lu  --overwrite /var/backup_sh/syncToS3.sh
 RUN chmod +x /var/backup_sh/pg_dumpall.sh
 RUN chmod +x /var/backup_sh/pg_rman.sh
 RUN chmod +x /var/backup_sh/syncToS3.sh
+
 
 CMD busybox crond -l 2 -L /dev/stderr -f
