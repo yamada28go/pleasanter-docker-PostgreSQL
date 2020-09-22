@@ -11,6 +11,12 @@ SAVEPATH_BASE='/var/db_backup'
 # AWS設定が存在したら処理を行う
 AWS_CONFIG='/root/.aws/config'
 
+# S3同期管理ログファイル名
+S3SyncLogFileName=${SAVEPATH_BASE}'/S3SyncLog.txt'
+
+# バックアップ済みファイルのハッシュ一覧
+FilesHashFileName='/BackupFiles.sha256'
+FilesHashFileNamePath=${SAVEPATH_BASE}${FilesHashFileName}
 
 # --- 一時ディレクトリ
 
@@ -32,7 +38,7 @@ do_s3_sync () {
 
   if "${is_safe}" ; then
     echo "safe mode"
-    echo 'safe-mode' >> ${SAVEPATH_BASE}/S3SyncLog.txt
+    do_add_synclog 'safe-mode'
     readonly local S3_PATH=s3://${S3_TARGET_BUCKET_NAME}/${S3_TARGET_DIRECTORY_NAME}-safe
   else
     echo "not safe mode"
@@ -40,12 +46,46 @@ do_s3_sync () {
   fi
 
   #S3 同期ログに同期記録を追加
-  echo `date +%Y%m%d_%H-%M-%S` >> ${SAVEPATH_BASE}/S3SyncLog.txt
+  do_add_synclog `date +%Y%m%d_%H-%M-%S`
 
+  #バックアップ済みのディレクトリハッシュを生成
+  time nice -n 19 find $SAVEPATH_BASE -type f -exec sha256sum {} > ${FilesHashFileNamePath}
+  time nice -n 19 7z a -mx=9 ${FilesHashFileNamePath}.7z ${FilesHashFileNamePath}
+  rm -f ${FilesHashFileNamePath}
+
+  #S3への同期を開始 
   echo "path is " ${S3_PATH}
   flock -n /tmp/s3sync.lock /usr/local/bin/aws s3 sync $SAVEPATH_BASE ${S3_PATH} --delete
   echo "sync end!"
 
+}
+
+# 同期ログにデータを追加する
+do_add_synclog(){
+
+  readonly local CompressedFile=${SAVEPATH_BASE}/S3SyncLog.txt.7z
+
+   #対象ファイルが無かったら作る
+  if [ -e $CompressedFile ]; then
+
+    touch ${S3SyncLogFileName}
+
+  else
+ 
+    7z e -o ${S3SyncLogFileName} ${CompressedFile}
+    mv ${S3SyncLogFileName}.7z ${S3SyncLogFileName}.7z_backup
+
+  fi
+
+  #ログを追加
+  echo "add log : " $1
+  echo $1 >> ${S3SyncLogFileName}
+  sha256sum ${S3SyncLogFileName} > ${S3SyncLogFileName}.sha256
+
+  #ログを圧縮
+  time nice -n 19 7z a -mx=9 ${CompressedFile} ${S3SyncLogFileName} ${S3SyncLogFileName}.sha256
+  rm -f ${S3SyncLogFileName}.7z_backup
+  rm -f ${S3SyncLogFileName}
 }
 
 # --- 主関数
@@ -76,10 +116,10 @@ if [ -e $AWS_CONFIG ]; then
     # S3への追加同期状態
   
     # S3パスからダウンロードログを取得する
-    /usr/local/bin/aws s3 cp s3://${S3_TARGET_BUCKET_NAME}/${S3_TARGET_DIRECTORY_NAME}/S3SyncLog.txt ${TempDir}/
+    /usr/local/bin/aws s3 cp s3://${S3_TARGET_BUCKET_NAME}/${S3_TARGET_DIRECTORY_NAME}/${FilesHashFileName}.7z ${TempDir}/
 
     #ファイルが一致するか比較する
-    diff ${TempDir}/S3SyncLog.txt ${SAVEPATH_BASE}/S3SyncLog.txt
+    diff ${TempDir}/${FilesHashFileName}.7z ${FilesHashFileNamePath}.7z
 
     ret=$?
 
