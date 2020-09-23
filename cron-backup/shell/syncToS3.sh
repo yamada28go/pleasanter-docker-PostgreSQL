@@ -96,7 +96,7 @@ if [ -e $AWS_CONFIG ]; then
   # 設定ファイルを読み込み
   source /root/.aws/S3Config.sh
 
-  S3Files=`/usr/local/bin/aws s3 ls s3://${S3_TARGET_BUCKET_NAME}/${S3_TARGET_DIRECTORY_NAME} --recursive --human | wc -l`
+  S3Files=`/usr/local/bin/aws s3 ls s3://${S3_TARGET_BUCKET_NAME}/${S3_TARGET_DIRECTORY_NAME}/ --recursive --human | wc -l`
   LocalFiles=`find $SAVEPATH_BASE -type f | wc -l`
 
   # 処理対象の情報を記録
