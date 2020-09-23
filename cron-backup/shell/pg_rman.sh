@@ -3,8 +3,10 @@
 
 export PATH=$PATH:/usr/lib/postgresql/12/bin/
 
-# バックアップファイルを残しておく日数
-PERIOD='+90'
+# アーカイブログの保持日数を指定
+export KEEP_ARCLOG_DAYS = 3
+# バックアップの保持日数を指定
+export KEEP_DATA_DAYS = 14
 
 # バックアップ先ディレクトリ
 SAVEPATH_BASE='/var/db_backup/PITR'
