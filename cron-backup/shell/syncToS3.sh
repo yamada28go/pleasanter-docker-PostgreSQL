@@ -96,16 +96,14 @@ if [ -e $AWS_CONFIG ]; then
   # 設定ファイルを読み込み
   source /root/.aws/S3Config.sh
 
-  S3Files=`/usr/local/bin/aws s3 ls s3://${S3_TARGET_BUCKET_NAME}/${S3_TARGET_DIRECTORY_NAME}/ --recursive --human | wc -l`
-  LocalFiles=`find $SAVEPATH_BASE -type f | wc -l`
+  S3Files=`/usr/local/bin/aws s3 ls s3://${S3_TARGET_BUCKET_NAME}/${S3_TARGET_DIRECTORY_NAME}/ --human | wc -l`
 
   # 処理対象の情報を記録
   echo "S3Files : " ${S3Files}
-  echo "LocalFiles : " ${LocalFiles}
     
-  # S3のデータ件数が1件 or 0件だったら
+  # 該当のS3フォルダが無かったら新規追加扱いとする。
   # 初期状態扱いとする
-  if [ "${S3Files}" == "0" -o  "${S3Files}" == "1" ]; then
+  if [ "${S3Files}" == "0" ]; then
     # S3への初期同期状態
 
     echo "On initial"
