@@ -87,7 +87,8 @@ do_add_synclog(){
   rm -f ${S3SyncLogFileName}
 }
 
-# --- 主関数
+# 主関数
+syncToS3_main_func(){
 
 if [ -e $AWS_CONFIG ]; then
 
@@ -143,4 +144,17 @@ if [ -e $AWS_CONFIG ]; then
 
  fi
 
+}
 
+#--- メイン実行部
+
+# 同期実行中ならば同期処理は実行しない
+exec 10>/tmp/$(basename $0 .sh).lock
+flock -n 10
+if [ $? -ne 0 ]; then
+    echo "Sync is already executed! Not Start S3 Sync Sync."
+    exit 1
+fi
+
+echo "Start S3 Sync Sync."
+syncToS3_main_func
