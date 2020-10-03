@@ -1,5 +1,7 @@
 # 毎日3時15分にバックアップを行う
 15 3 * * * flock --timeout=600 /tmp/db_backup.lock /var/backup_sh/pg_dumpall.sh
-# 30分に1回ごとバックアップ
-*/30 * * * * flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/pg_rman.sh
+# 30分に1回ごとにインクリメンタルバック
+*/30 * * * * flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/pg_rman.sh INCREMENTAL
+# 1日1回ごとにベースインクリメンタルバック
+15 2 * * * flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/pg_rman.sh FULL
 
