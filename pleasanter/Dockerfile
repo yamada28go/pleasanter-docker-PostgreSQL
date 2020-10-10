@@ -13,7 +13,8 @@ RUN apt update \
 	curl \
 	supervisor \
 	locales \
-	tzdata
+	tzdata \
+	nkf
 RUN apt-get clean \
 	&& rm -rf /var/apt/cache/* /tmp/* /var/tmp/* \
 	&& locale-gen ja_JP.UTF-8
@@ -27,6 +28,10 @@ WORKDIR /home/Pleasanter.NetCore
 COPY supervisord.conf /usr/local/etc/supervisord.conf
 COPY Rds.json Implem.Pleasanter.NetCore/App_Data/Parameters/Rds.json
 COPY pleasanter.sh cmdnetcore/pleasanter.sh
+# ホスト環境で文字コードが異なる場合に対応
+RUN nkf -Lu --overwrite /usr/local/etc/supervisord.conf && \
+	nkf -Lu --overwrite Implem.Pleasanter.NetCore/App_Data/Parameters/Rds.json &&\
+	nkf -Lu --overwrite cmdnetcore/pleasanter.sh 
 RUN chmod 744 cmdnetcore/*.sh \
 	&& cmdnetcore/build.sh
 
