@@ -28,10 +28,14 @@ RUN apt-get -y install p7zip-full bc
 # pg_rmanのビルドツールをインストール
 WORKDIR /root
 RUN apt update &&\
-  apt-get install -y gcc make libpq-dev zlib1g-dev libpam0g-dev libssl-dev libselinux1-dev libkrb5-dev libedit-dev postgresql-server-dev-12
-RUN wget https://github.com/ossc-db/pg_rman/releases/download/V${RMAN_VER}/pg_rman-${RMAN_VER}-pg${PG_VER}.tar.gz &&\
-  tar xvfz pg_rman-${RMAN_VER}-pg${PG_VER}.tar.gz && \
-  cd pg_rman-${RMAN_VER}-pg${PG_VER} && \
+  apt-get install -y gcc make libpq-dev zlib1g-dev libpam0g-dev libssl-dev libselinux1-dev libkrb5-dev libedit-dev postgresql-server-dev-12 git
+# Release zipだとビルド出来なくなっていたので、
+# gitからtag指定で取得する
+RUN mkdir pg_rman_git &&\
+  cd pg_rman_git &&\
+  git clone https://github.com/ossc-db/pg_rman.git &&\
+  cd pg_rman &&\
+  git checkout V1.3.9&&\
   make &&\
   make install
 
