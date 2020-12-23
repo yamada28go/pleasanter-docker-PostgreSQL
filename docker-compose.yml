@@ -23,6 +23,9 @@ services:
       - ./postgres/conf/postgresql.conf:/etc/postgresql.conf
       - *APP_DB_data
       - *APP_DB_arclog
+    networks:
+      - default
+      - pleasanter-service-network
   pleasanter-web:
     ports:
       - "80:80"
@@ -34,6 +37,9 @@ services:
         #- GIT_HASH=cea284d8c57f4794da821c76d5676d0078b30ae0
         # 1.1.5.1 : a7d57848b3d3fbd2b72389988455c14ab7347b25
         - GIT_HASH=a7d57848b3d3fbd2b72389988455c14ab7347b25
+    networks:
+      - default
+      - pleasanter-service-network
   cron-backup:
     build:
       context: cron-backup/.
@@ -60,3 +66,9 @@ volumes:
     # dbのバックアップ領域
   db-backup:
     driver: local
+
+networks:
+  # 他のcomposerと連携できるように、
+  # ネットワーク名を明示的に設定する
+  pleasanter-service-network:
+
