@@ -54,6 +54,7 @@ services:
       # 存在しない場合はバックアップは行われない
       #- ./cron-backup/config/aws-cli:/root/.aws/
 
+
 volumes:
   db-data:
     driver: local
