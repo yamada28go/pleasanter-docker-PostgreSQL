@@ -22,7 +22,7 @@ RUN apt-get clean \
 # 対象となるコードを取得
 RUN git clone https://github.com/implem/implem.Pleasanter.NetCore /home/Pleasanter.NetCore
 WORKDIR /home/Pleasanter.NetCore
-RUN git checkout ${PARAMETER}
+RUN git checkout ${GIT_HASH}
 
 WORKDIR /home/Pleasanter.NetCore
 COPY supervisord.conf /usr/local/etc/supervisord.conf
@@ -31,7 +31,7 @@ COPY pleasanter.sh cmdnetcore/pleasanter.sh
 # ホスト環境で文字コードが異なる場合に対応
 RUN nkf -Lu --overwrite /usr/local/etc/supervisord.conf && \
 	nkf -Lu --overwrite Implem.Pleasanter.NetCore/App_Data/Parameters/Rds.json &&\
-	nkf -Lu --overwrite cmdnetcore/pleasanter.sh 
+	nkf -Lu --overwrite cmdnetcore/pleasanter.sh
 RUN chmod 744 cmdnetcore/*.sh \
 	&& cmdnetcore/build.sh
 
