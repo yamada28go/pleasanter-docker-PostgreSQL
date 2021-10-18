@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster
+FROM mcr.microsoft.com/dotnet/sdk:5.0
 USER root
 
 # ビルド対象とするgitのHash値
@@ -14,7 +14,9 @@ RUN apt update \
 	supervisor \
 	locales \
 	tzdata \
-	nkf
+	nkf\
+	# 画像の拡大縮小で必要
+	libgdiplus
 RUN apt-get clean \
 	&& rm -rf /var/apt/cache/* /tmp/* /var/tmp/* \
 	&& locale-gen ja_JP.UTF-8
