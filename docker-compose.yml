@@ -23,6 +23,11 @@ services:
       - ./postgres/conf/postgresql.conf:/etc/postgresql.conf
       - *APP_DB_data
       - *APP_DB_arclog
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
     networks:
       - default
       - pleasanter-service-network
@@ -41,6 +46,11 @@ services:
         # - GIT_HASH=ef64b29dc7321c58f6f8d2fa0b4b23b0f6a8b23e
         # 1.2.12.0 : f2dd1f34ee8ab5db70058900e8340814526aae60
         - GIT_HASH=f2dd1f34ee8ab5db70058900e8340814526aae60
+     logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
     networks:
       - default
       - pleasanter-service-network
