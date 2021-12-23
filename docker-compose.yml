@@ -45,12 +45,15 @@ services:
         # 1.1.11.0 : ef64b29dc7321c58f6f8d2fa0b4b23b0f6a8b23e
         # - GIT_HASH=ef64b29dc7321c58f6f8d2fa0b4b23b0f6a8b23e
         # 1.2.12.0 : f2dd1f34ee8ab5db70058900e8340814526aae60
-        - GIT_HASH=f2dd1f34ee8ab5db70058900e8340814526aae60
+        # 1.2.22.1 : c5a2153216da40bb609d755e85a05fa455d2f4d4
+        - GIT_HASH=c5a2153216da40bb609d755e85a05fa455d2f4d4
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "10"
+    volumes:
+      - ./pleasanter/parameters:/var/opt/parameters
     networks:
       - default
       - pleasanter-service-network

@@ -16,7 +16,10 @@ RUN apt update \
 	tzdata \
 	nkf\
 	# 画像の拡大縮小で必要
-	libgdiplus
+	libgdiplus\
+	#パラメータ調整
+	rsync
+
 RUN apt-get clean \
 	&& rm -rf /var/apt/cache/* /tmp/* /var/tmp/* \
 	&& locale-gen ja_JP.UTF-8
@@ -36,6 +39,10 @@ RUN nkf -Lu --overwrite /usr/local/etc/supervisord.conf && \
 	nkf -Lu --overwrite cmdnetcore/pleasanter.sh
 RUN chmod 744 cmdnetcore/*.sh \
 	&& cmdnetcore/build.sh
+
+# 設定ファイルを取得して更新する
+RUN mkdir -p /var/opt/parameters/raw && mkdir -p /var/opt/parameters/customize
+RUN rsync -av /home/Pleasanter.NetCore/Implem.Pleasanter.NetCore/App_Data/Parameters/* /home/Pleasanter.NetCore/Implem.Pleasanter.NetCore/App_Data/Parameters_back
 
 # Fix
 # Linuxでビルドする場合、必要なファイルがコピーされなていので修正
