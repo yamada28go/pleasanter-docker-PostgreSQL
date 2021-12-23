@@ -41,9 +41,15 @@ RUN mkdir pg_rman_git &&\
 
 # S3用自動バックアップ用にAWS　CLIをインストール
 RUN apt update &&\
-  apt-get install -y curl unzip less
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" &&\
-  unzip awscliv2.zip &&\
+  apt-get install -y curl unzip less 
+
+# AWS CLIのコマンドはアーキテクチャによって異なるので、アーキテクチャによって分岐する
+RUN if [ `dpkg --print-architecture` = "arm64" ]; then \
+      curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "awscliv2.zip"; \
+    else \
+      curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"; \
+    fi 
+RUN  unzip awscliv2.zip &&\
   ./aws/install &&\
   /usr/local/bin/aws --version
 
