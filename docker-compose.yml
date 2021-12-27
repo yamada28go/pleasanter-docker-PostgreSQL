@@ -33,7 +33,8 @@ services:
       - pleasanter-service-network
   pleasanter-web:
     ports:
-      - "80:80"
+      # https-portalと被らないようにドメインを分ける
+      - "8081:80"
     build:
       context: pleasanter/.
       args:

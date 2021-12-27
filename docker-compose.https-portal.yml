@@ -1,63 +1,10 @@
 version: "3.7"
 
-# 共通環境変数を定義
-x-var-db-data: &APP_DB_data "db-data:/var/lib/postgresql/data"
-x-var-db-arclog: &APP_DB_arclog "db-arclog:/var/lib/postgresql/arclog"
-
+#HTTP-Potal用の設定
 services:
-  postgres-db:
-    build: postgres/.
-    container_name: db-container
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=mysecretpassword1234
-      - PGPASSWORD=mysecretpassword1234
-      - POSTGRES_DB=testdb
-      - DATABASE_HOST=localhost
-      - DB_EXTENSION=pg_trgm
-    command: 'postgres -c config_file="/etc/postgresql.conf"'
-    volumes:
-      - ./postgres/init:/docker-entrypoint-initdb.d
-      - ./postgres/conf/postgresql.conf:/etc/postgresql.conf
-      - *APP_DB_data
-      - *APP_DB_arclog
-    networks:
-      - default
-      - pleasanter-service-network
-  pleasanter-web:
-    #ports:
-    #  - "80:80"
-    build:
-      context: pleasanter/.
-      args:
-        # バージョンを指定
-        # 1.1.3.2 : cea284d8c57f4794da821c76d5676d0078b30ae0
-        #- GIT_HASH=cea284d8c57f4794da821c76d5676d0078b30ae0
-        # 1.1.5.1 : a7d57848b3d3fbd2b72389988455c14ab7347b25
-        # 1.1.7.0 : 550d0f37b36c606c78331d3ada77504866ef43a4
-        # 1.1.11.0 : ef64b29dc7321c58f6f8d2fa0b4b23b0f6a8b23e
-        - GIT_HASH=ef64b29dc7321c58f6f8d2fa0b4b23b0f6a8b23e
-    networks:
-      - default
-      - pleasanter-service-network
-  cron-backup:
-    build:
-      context: cron-backup/.
-    volumes:
-      - *APP_DB_data
-      - *APP_DB_arclog
-      # 自動バックアップされた結果は「/var/db_backup」に格納される。
-      # コンテナの外からアクセスする場合は、このパスを外から見える所に配置しておく
-      - db-backup:/var/db_backup
-      # S3で自動バックアップする場合
-      # aws cliの設定を以下パスに行う。
-      # 存在しない場合はバックアップは行われない
-      #- ./cron-backup/config/aws-cli:/root/.aws/
   # 通信を暗号化
   https-portal:
-    image: steveltn/https-portal:1
+    image: steveltn/https-portal:1    
     ports:
       - "80:80"
       - "443:443"
@@ -79,21 +26,15 @@ services:
       ERROR_LOG: stdout
       ACCESS_LOG: stderr
       # 鍵は再利用
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
     volumes:
       - ssl_data:/var/lib/https-portal
 
 volumes:
-  db-data:
-    driver: local
-    # Compose の外ですでに作成済みの volume を指定する場合は ture を設定する。
-    # そうすると、 docker-compose up 時に Compose は volume を作成しようとしません。
-    # かつ、指定した volume が存在しないとエラーを raise します。
-    #external: true
-  db-arclog:
-    driver: local
-    # dbのバックアップ領域
-  db-backup:
-    driver: local
   ssl_data:
     driver:
       local
