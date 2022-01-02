@@ -4,9 +4,9 @@
 export PATH=$PATH:/usr/lib/postgresql/12/bin/
 
 # アーカイブログの保持日数を指定
-export KEEP_ARCLOG_DAYS=3
+export KEEP_ARCLOG_DAYS=1
 # バックアップの保持日数を指定
-export KEEP_DATA_DAYS=3
+export KEEP_DATA_DAYS=1
 
 # バックアップ先ディレクトリ
 SAVEPATH_BASE='/var/db_backup/PITR'
@@ -61,5 +61,5 @@ pg_rman delete ${DELETE_DATA} 00:00:00
 
 # S3同期を行う
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
-source ${SCRIPT_DIR}/syncToS3.sh
+source ${SCRIPT_DIR}/syncToS3.sh PITR true
 

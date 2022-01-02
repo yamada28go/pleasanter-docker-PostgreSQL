@@ -3,8 +3,8 @@
 #暗号化パスワード
 ZIP_PASSWORD='Vi8PRhxL'
 
-# バックアップファイルを残しておく日数
-PERIOD='+90'
+# ローカルにバックアップファイルを残しておく日数
+PERIOD='+2'
 
 # バックアップ先ディレクトリ
 SAVEPATH_BASE='/var/db_backup/dumpall'
@@ -32,4 +32,4 @@ find $SAVEPATH_BASE -type d -empty -delete
 
 # S3同期を行う
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
-source ${SCRIPT_DIR}/syncToS3.sh
+source ${SCRIPT_DIR}/syncToS3.sh dumpall false
