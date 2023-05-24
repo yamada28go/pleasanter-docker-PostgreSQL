@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-export PATH=$PATH:/usr/lib/postgresql/12/bin/
+export PATH=$PATH:/usr/lib/postgresql/15/bin/
 
 # アーカイブログの保持日数を指定
 export KEEP_ARCLOG_DAYS=1

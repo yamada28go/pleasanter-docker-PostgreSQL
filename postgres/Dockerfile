@@ -1,4 +1,4 @@
-FROM postgres:12-alpine
+FROM postgres:15-alpine
 ENV LANG ja_JP.utf8
 
 # バックアップ用のディレクトリを生成しておく

@@ -1,9 +1,9 @@
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 USER root
 
 # pg_rmanの設定
-ARG RMAN_VER=1.3.9
-ARG PG_VER=12
+ARG RMAN_VER=V1.3.15
+ARG PG_VER=15
 
 # 日本時間に設定
 ENV TZ=Asia/Tokyo
@@ -20,7 +20,7 @@ RUN apt -y install lsb-release wget gnupg2 &&\
   wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - 
 RUN  echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee  /etc/apt/sources.list.d/pgdg.list &&\
   apt update &&\
-  apt -y install postgresql-client-12
+  apt -y install postgresql-client-${PG_VER}
 
 # バックアップに使用するツール
 RUN apt-get -y install p7zip-full bc
@@ -28,14 +28,14 @@ RUN apt-get -y install p7zip-full bc
 # pg_rmanのビルドツールをインストール
 WORKDIR /root
 RUN apt update &&\
-  apt-get install -y gcc make libpq-dev zlib1g-dev libpam0g-dev libssl-dev libselinux1-dev libkrb5-dev libedit-dev postgresql-server-dev-12 git
+  apt-get install -y gcc make libpq-dev zlib1g-dev libpam0g-dev libssl-dev libselinux1-dev libkrb5-dev libedit-dev postgresql-server-dev-${PG_VER} git libzstd-dev liblz4-dev libreadline-dev
 # Release zipだとビルド出来なくなっていたので、
 # gitからtag指定で取得する
 RUN mkdir pg_rman_git &&\
   cd pg_rman_git &&\
   git clone https://github.com/ossc-db/pg_rman.git &&\
   cd pg_rman &&\
-  git checkout V1.3.9&&\
+  git checkout ${RMAN_VER} &&\
   make &&\
   make install
 
