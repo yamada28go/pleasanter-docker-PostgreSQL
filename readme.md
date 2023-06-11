@@ -7,7 +7,6 @@
 vpsのような環境で簡単にPleasanterが起動して運用できるように整備してあります。
 
 
-
 ----
 
 ## 使い方
@@ -34,47 +33,46 @@ docker build . -t pleasanter-local-codedefiner:1.3.40.1 -f Implem.CodeDefiner/Do
 
 ### 3. 環境変数の設定
 
-接続設定用に環境変数を定義します。
-docker-compose.ymlファイルが存在するディレクトリと同じディレクトリに「.env」ファイルを作成してください。
-dockerか起動するときに、同ファイル内の定義を読み込んで起動します。
+#### 3.1. postgresユーザーの話
 
-```  
-# postgresの設定
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=mysecretpassword1234
-POSTGRES_DB=Implem.Pleasanter
-POSTGRES_HOST_AUTH_METHOD=scram-sha-256
-POSTGRES_INITDB_ARGS="--auth-host=scram-sha-256"
+少しややこしいのですが、pleasanterが動作するためには、postgresのユーザー(ロール)は3種類必用です。
+以下に、各ロールの設定を示します。
 
-#dockerの設定
-Implem_Pleasanter_Rds_PostgreSQL_SaConnectionString='Server=postgres-db;Database=postgres;UID=postgres;PWD=mysecretpassword1234'
-Implem_Pleasanter_Rds_PostgreSQL_OwnerConnectionString='Server=postgres-db;Database=#ServiceName#;UID=#ServiceName#_Owner;PWD=mysecretpassword1234'
-Implem_Pleasanter_Rds_PostgreSQL_UserConnectionString='Server=postgres-db;Database=#ServiceName#;UID=#ServiceName#_User;PWD=mysecretpassword1234'
+| id | 種別    | 意味                     | 名称                    | パスワード                |設定場所|
+| -- | ------- | ----------------------- | ----------------------- | ------------------------- |---|
+| 1  | SA      | postgresの管理者         | postgres                | mysecretpassword1234_sa  |.env|
+| 2  | Owner   | スキーマを保持するユーザー | Implem.Pleasanter_Owner | mysecretpassword1234_owner |.env , postgres/init/1_create.sql|
+| 3  | User    | スキーマを使用するユーザー | Implem.Pleasanter_User  | mysecretpassword1234_user  |.env|
 
-```
+今回の環境において、これら変数の設定箇所は複数のファイルに分かれています。
+Ownerだけ複数環境に分かれているため設定箇所に注意しましょう。
 
-設定の中で定義が必用な内容は以下となります。
-パスワードは環境に任意に変更してください。
-
-| Variable            | Value                |意味|
-|---------------------|----------------------|---|
-| POSTGRES_USER       | postgres             |postgresのユーザー名|
-| POSTGRES_PASSWORD   | mysecretpassword1234 |postgresのパスワード|
-
+実際の運用時には、パスワードは任意の値に変更してください。
 
 ### 3. DBを初期化する
 
 作成した設定でコンテナを起動します。
 これにより、上記の環境設定でpostgresが初期化されます。
+dbコンテナはバックグラウンドで起動します。
 
 ```
-docker compose up postgres-db
+docker compose up postgres-db -d
+```
+
+``` 
+docker-compose down --volumes --remove-orphans && docker compose up postgres-db 
 ```
 
 ### 4. プリザンターのDB定義を初期化する
 
 先にビルドしたイメージを使って、dbにプリザンターの環境を作ります。
-このとき、「postgres-db」コンテナは動作している必用があります。
+以下コマンドを実行すると必用なテーブルが生成されます。
+
+```
+docker-compose run codedefiner _rds
+```
+
+### 5. プリザンターを起動する
 
 
 ```shell

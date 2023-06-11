@@ -27,7 +27,6 @@ services:
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-#      - POSTGRES_DB=${POSTGRES_DB}
       - DATABASE_HOST=localhost
       - DB_EXTENSION=pg_trgm
     command: 'postgres -c config_file="/etc/postgresql.conf"'
@@ -55,6 +54,15 @@ services:
         Implem.Pleasanter_Rds_PostgreSQL_SaConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_SaConnectionString}
         Implem.Pleasanter_Rds_PostgreSQL_OwnerConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_OwnerConnectionString}
         Implem.Pleasanter_Rds_PostgreSQL_UserConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_UserConnectionString}
+  pleasanter-web:
+    container_name: pleasanter
+    image: pleasanter-local-web:1.3.40.1
+    depends_on:
+      - postgres-db
+    environment:
+      Implem.Pleasanter_Rds_PostgreSQL_SaConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_SaConnectionString}
+      Implem.Pleasanter_Rds_PostgreSQL_OwnerConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_OwnerConnectionString}
+      Implem.Pleasanter_Rds_PostgreSQL_UserConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_UserConnectionString}
 
 
   # pleasanter-web:
