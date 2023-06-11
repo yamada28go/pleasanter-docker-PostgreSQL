@@ -5,16 +5,29 @@ x-var-db-data: &APP_DB_data "db-data:/var/lib/postgresql/data"
 x-var-db-arclog: &APP_DB_arclog "db-arclog:/var/lib/postgresql/arclog"
 
 services:
+  #DBのコード定義を生成する
+  # Implem.CodeDefiner:
+  #   image: pleasanter-local-codedefiner:1.3.38.1
+  #   container_name: codedefiner
+  #   environment:
+  #     Implem.Pleasanter_Rds_PostgreSQL_SaConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_SaConnectionString}
+  #     Implem.Pleasanter_Rds_PostgreSQL_OwnerConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_OwnerConnectionString}
+  #     Implem.Pleasanter_Rds_PostgreSQL_UserConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_UserConnectionString}
+  #   depends_on:
+  #     - postgres-db
+  #   networks:
+  #     - default
+
+  #DB本体
   postgres-db:
     build: postgres/.
     container_name: db-container
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=mysecretpassword1234
-      - PGPASSWORD=mysecretpassword1234
-      - POSTGRES_DB=testdb
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+#      - POSTGRES_DB=${POSTGRES_DB}
       - DATABASE_HOST=localhost
       - DB_EXTENSION=pg_trgm
     command: 'postgres -c config_file="/etc/postgresql.conf"'
@@ -31,52 +44,66 @@ services:
     networks:
       - default
       - pleasanter-service-network
-  pleasanter-web:
-    ports:
-      # https-portalと被らないようにドメインを分ける
-      - "8081:80"
-    build:
-      context: pleasanter/.
-      args:
-        # バージョンを指定
-        # 1.1.3.2 : cea284d8c57f4794da821c76d5676d0078b30ae0
-        #- GIT_HASH=cea284d8c57f4794da821c76d5676d0078b30ae0
-        # 1.1.5.1 : a7d57848b3d3fbd2b72389988455c14ab7347b25
-        # 1.1.7.0 : 550d0f37b36c606c78331d3ada77504866ef43a4
-        # 1.1.11.0 : ef64b29dc7321c58f6f8d2fa0b4b23b0f6a8b23e
-        # - GIT_HASH=ef64b29dc7321c58f6f8d2fa0b4b23b0f6a8b23e
-        # 1.2.12.0 : f2dd1f34ee8ab5db70058900e8340814526aae60
-        # 1.2.22.1 : c5a2153216da40bb609d755e85a05fa455d2f4d4
-        # 1.2.23.0 : 95b1ad57023c0dfbd5a4b531a768f8568a5d7d21
-        - GIT_HASH=95b1ad57023c0dfbd5a4b531a768f8568a5d7d21
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "10"
-    volumes:
-      - ./pleasanter/parameters:/var/opt/parameters
-    networks:
-      - default
-      - pleasanter-service-network
-  cron-backup:
-    build:
-      context: cron-backup/.
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "10"
-    volumes:
-      - *APP_DB_data
-      - *APP_DB_arclog
-      # 自動バックアップされた結果は「/var/db_backup」に格納される。
-      # コンテナの外からアクセスする場合は、このパスを外から見える所に配置しておく
-      - db-backup:/var/db_backup
-      # S3で自動バックアップする場合
-      # aws cliの設定を以下パスに行う。
-      # 存在しない場合はバックアップは行われない
-      #- ./cron-backup/config/aws-cli:/root/.aws/
+
+  codedefiner:
+      restart: "no"
+      container_name: codedefiner
+      image: pleasanter-local-codedefiner:1.3.40.1
+      depends_on:
+        - postgres-db
+      environment:
+        Implem.Pleasanter_Rds_PostgreSQL_SaConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_SaConnectionString}
+        Implem.Pleasanter_Rds_PostgreSQL_OwnerConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_OwnerConnectionString}
+        Implem.Pleasanter_Rds_PostgreSQL_UserConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_UserConnectionString}
+
+
+  # pleasanter-web:
+  #   ports:
+  #     # https-portalと被らないようにドメインを分ける
+  #     - "8081:80"
+  #   build:
+  #     context: pleasanter/.
+  #     args:
+  #       # バージョンを指定
+  #       # 1.1.3.2 : cea284d8c57f4794da821c76d5676d0078b30ae0
+  #       #- GIT_HASH=cea284d8c57f4794da821c76d5676d0078b30ae0
+  #       # 1.1.5.1 : a7d57848b3d3fbd2b72389988455c14ab7347b25
+  #       # 1.1.7.0 : 550d0f37b36c606c78331d3ada77504866ef43a4
+  #       # 1.1.11.0 : ef64b29dc7321c58f6f8d2fa0b4b23b0f6a8b23e
+  #       # - GIT_HASH=ef64b29dc7321c58f6f8d2fa0b4b23b0f6a8b23e
+  #       # 1.2.12.0 : f2dd1f34ee8ab5db70058900e8340814526aae60
+  #       # 1.2.22.1 : c5a2153216da40bb609d755e85a05fa455d2f4d4
+  #       # 1.2.23.0 : 95b1ad57023c0dfbd5a4b531a768f8568a5d7d21
+  #       - GIT_HASH=95b1ad57023c0dfbd5a4b531a768f8568a5d7d21
+  #   logging:
+  #     driver: "json-file"
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "10"
+  #   volumes:
+  #     - ./pleasanter/parameters:/var/opt/parameters
+  #   networks:
+  #     - default
+  #     - pleasanter-service-network
+  # 定期バックアップ用
+  # cron-backup:
+  #   build:
+  #     context: cron-backup/.
+  #   logging:
+  #     driver: "json-file"
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "10"
+  #   volumes:
+  #     - *APP_DB_data
+  #     - *APP_DB_arclog
+  #     # 自動バックアップされた結果は「/var/db_backup」に格納される。
+  #     # コンテナの外からアクセスする場合は、このパスを外から見える所に配置しておく
+  #     - db-backup:/var/db_backup
+  #     # S3で自動バックアップする場合
+  #     # aws cliの設定を以下パスに行う。
+  #     # 存在しない場合はバックアップは行われない
+  #     #- ./cron-backup/config/aws-cli:/root/.aws/
 
 volumes:
   db-data:
