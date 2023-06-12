@@ -81,6 +81,7 @@ services:
   #   networks:
   #     - default
   #     - pleasanter-service-network
+  
   # 定期バックアップ用
   # cron-backup:
   #   build:
@@ -100,6 +101,8 @@ services:
   #     # aws cliの設定を以下パスに行う。
   #     # 存在しない場合はバックアップは行われない
   #     #- ./cron-backup/config/aws-cli:/root/.aws/
+
+  # DB定義更新
   codedefiner:
       container_name: codedefiner
       image: pleasanter-local-codedefiner:1.3.40.1
