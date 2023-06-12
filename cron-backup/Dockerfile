@@ -59,17 +59,19 @@ RUN apt-get -y clean \
 
 # postgressのバックアップ設定
 WORKDIR /root
-RUN echo "*:*:*:*:mysecretpassword1234" > /root/.pgpass
-RUN chmod 600 .pgpass
+#RUN echo "*:*:*:*:mysecretpassword1234" > /root/.pgpass
+#RUN chmod 600 .pgpass
 COPY ./shell/pg_dumpall.sh /var/backup_sh/pg_dumpall.sh
 COPY ./shell/pg_rman.sh /var/backup_sh/pg_rman.sh
 COPY ./shell/syncToS3.sh /var/backup_sh/syncToS3.sh
+COPY ./shell/db_maintenance.sh /var/backup_sh/db_maintenance.sh
 RUN nkf -Lu  --overwrite /var/backup_sh/pg_dumpall.sh
 RUN nkf -Lu  --overwrite /var/backup_sh/pg_rman.sh
 RUN nkf -Lu  --overwrite /var/backup_sh/syncToS3.sh
+RUN nkf -Lu  --overwrite /var/backup_sh/db_maintenance.sh
 RUN chmod +x /var/backup_sh/pg_dumpall.sh
 RUN chmod +x /var/backup_sh/pg_rman.sh
 RUN chmod +x /var/backup_sh/syncToS3.sh
-
+RUN chmod +x /var/backup_sh/db_maintenance.sh
 
 CMD busybox crond -l 2 -L /dev/stderr -f

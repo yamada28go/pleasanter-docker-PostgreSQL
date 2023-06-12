@@ -83,24 +83,28 @@ services:
   #     - pleasanter-service-network
   
   # 定期バックアップ用
-  # cron-backup:
-  #   build:
-  #     context: cron-backup/.
-  #   logging:
-  #     driver: "json-file"
-  #     options:
-  #       max-size: "10m"
-  #       max-file: "10"
-  #   volumes:
-  #     - *APP_DB_data
-  #     - *APP_DB_arclog
-  #     # 自動バックアップされた結果は「/var/db_backup」に格納される。
-  #     # コンテナの外からアクセスする場合は、このパスを外から見える所に配置しておく
-  #     - db-backup:/var/db_backup
-  #     # S3で自動バックアップする場合
-  #     # aws cliの設定を以下パスに行う。
-  #     # 存在しない場合はバックアップは行われない
-  #     #- ./cron-backup/config/aws-cli:/root/.aws/
+  cron-backup:
+    build:
+      context: cron-backup/.
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
+    environment:
+      - PGPASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - *APP_DB_data
+      - *APP_DB_arclog
+      # 自動バックアップされた結果は「/var/db_backup」に格納される。
+      # コンテナの外からアクセスする場合は、このパスを外から見える所に配置しておく
+      - db-backup:/var/db_backup
+      # S3で自動バックアップする場合
+      # aws cliの設定を以下パスに行う。
+      # 存在しない場合はバックアップは行われない
+      #- ./cron-backup/config/aws-cli:/root/.aws/
+    networks:
+      - pleasanter-service-network
 
   # DB定義更新
   codedefiner:
