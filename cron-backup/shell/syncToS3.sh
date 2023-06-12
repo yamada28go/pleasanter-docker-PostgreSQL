@@ -38,6 +38,13 @@ do_s3_sync () {
 
 }
 
+if [ -z $ENABLE_S3_BACKUP ]; then
+  echo '$ENABLE_S3_BACKUP is not set. exit backup s3!' >&2
+  exit -1
+fi
+
+echo 'start backup s3!' 
+
 #--- メイン実行部
 
 # 同期実行中ならば同期処理は実行しない
