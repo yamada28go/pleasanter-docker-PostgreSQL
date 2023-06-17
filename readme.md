@@ -74,6 +74,24 @@ docker-compose run --rm codedefiner _rds
 
 ### 5. プリザンターを起動する
 
+```
+docker compose up
+```
+
+起動が完了すると以下ポートで動作します。
+ログインして確認してください。
+
+[http://localhost:8081/](http://localhost:8081/)
+
+デフォルト状態でのログインパスワードは以下となります。
+
+| ユーザ     | パスワード    |
+|------------|--------------|
+| Administrator | pleasanter |
+
+
+
+---
 
 ```shell
 docker run --rm \
