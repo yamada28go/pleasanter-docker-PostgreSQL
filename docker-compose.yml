@@ -51,36 +51,6 @@ services:
     #   - ./pleasanter/parameters:/var/opt/parameters
     networks:
       - pleasanter-service-network
-
-
-  # pleasanter-web:
-  #   ports:
-  #     # https-portalと被らないようにドメインを分ける
-  #     - "8081:80"
-  #   build:
-  #     context: pleasanter/.
-  #     args:
-  #       # バージョンを指定
-  #       # 1.1.3.2 : cea284d8c57f4794da821c76d5676d0078b30ae0
-  #       #- GIT_HASH=cea284d8c57f4794da821c76d5676d0078b30ae0
-  #       # 1.1.5.1 : a7d57848b3d3fbd2b72389988455c14ab7347b25
-  #       # 1.1.7.0 : 550d0f37b36c606c78331d3ada77504866ef43a4
-  #       # 1.1.11.0 : ef64b29dc7321c58f6f8d2fa0b4b23b0f6a8b23e
-  #       # - GIT_HASH=ef64b29dc7321c58f6f8d2fa0b4b23b0f6a8b23e
-  #       # 1.2.12.0 : f2dd1f34ee8ab5db70058900e8340814526aae60
-  #       # 1.2.22.1 : c5a2153216da40bb609d755e85a05fa455d2f4d4
-  #       # 1.2.23.0 : 95b1ad57023c0dfbd5a4b531a768f8568a5d7d21
-  #       - GIT_HASH=95b1ad57023c0dfbd5a4b531a768f8568a5d7d21
-  #   logging:
-  #     driver: "json-file"
-  #     options:
-  #       max-size: "10m"
-  #       max-file: "10"
-  #   volumes:
-  #     - ./pleasanter/parameters:/var/opt/parameters
-  #   networks:
-  #     - default
-  #     - pleasanter-service-network
   
   # 定期バックアップ用
   cron-backup:
