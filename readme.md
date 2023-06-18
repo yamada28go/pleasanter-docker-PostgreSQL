@@ -90,39 +90,9 @@ docker compose up
 | Administrator | pleasanter |
 
 
-
----
-
-```shell
-docker run --rm \
-    --network pleasanter-docker-postgresql_pleasanter-service-network \
-    --name codedefiner \
-    --env-file .env \
-    pleasanter-local-codedefiner:1.3.40.1 _rds
-```
-
-
-
-```
-docker compose run pleasanter-local-codedefiner:1.3.40.1 _rds
-```
-
-
-
-
-   ```shell
-   docker run --rm --network pleasanter-service-network \
-       --name codedefiner \
-       --env-file env-list \
-       implem/pleasanter:codedefiner _rds
-       
-   ```
-
-   docker compose run -p 50001:80 pleasanter-web
-
 ## 参考
 
-[](https://qiita.com/imp-kawano/items/a9407d474c1dd39731d2)
-
+[プリザンターの公式DockerイメージをComposeで動かす](https://qiita.com/imp-kawano/items/a9407d474c1dd39731d2)
 [Pleasanterをサクッと起動できるcompose](https://qiita.com/coleyon/items/8ca7830cdb0515f370de)
 [Docker上で動かしてみた公式記事](https://pleasanter.hatenablog.jp/entry/2019/04/08/191954)
+
