@@ -1,6 +1,4 @@
 #!/bin/bash
-
-
 export PATH=$PATH:/usr/lib/postgresql/15/bin/
 
 # アーカイブログの保持日数を指定
@@ -17,9 +15,4 @@ export ARCLOG_PATH=/var/lib/postgresql/arclog
 # ユーザー設定
 export HOST_CONFIG='--host=postgres-db --username postgres'
 
-# # ARCLOGのパスを両コンテナが見えるようにしておく
-# chmod 777 $ARCLOG_PATH
-
-# # バックアップの実施種別
-# BACKUP_TYPE=$1
 
