@@ -1,4 +1,4 @@
--- \set target_datetime '2023-08-01 00:00:00'
+--- 削除対象日を指定する
 \echo :target_datetime
 
 BEGIN;
@@ -8,11 +8,12 @@ SELECT *
 FROM "SysLogs"
 WHERE "CreatedTime" < :'target_datetime';
 
-\COPY temp_export TO '/tmp/old_records.csv' WITH CSV DELIMITER E'\t' FORCE QUOTE * NULL AS '' HEADER;
+\COPY temp_export TO PROGRAM 'nice -n 19 7z a -si -mx=9 -mhe=on /tmp/__old_syslog_records.7z' WITH CSV DELIMITER E'\t' FORCE QUOTE * NULL AS '' HEADER;
 
 DELETE FROM "SysLogs"
 WHERE "CreatedTime" < :'target_datetime';
 
 DROP TABLE temp_export;
 
-ROLLBACK;
+-- ROLLBACK;
+COMMIT;
