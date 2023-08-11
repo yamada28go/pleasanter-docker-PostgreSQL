@@ -66,17 +66,22 @@ COPY ./shell/pg_rman_env.sh /var/backup_sh/pg_rman_env.sh
 COPY ./shell/pg_rman.sh /var/backup_sh/pg_rman.sh
 COPY ./shell/syncToS3.sh /var/backup_sh/syncToS3.sh
 COPY ./shell/db_maintenance.sh /var/backup_sh/db_maintenance.sh
+COPY ./shell/syslogs_maintenance/syslogs_maintenance.sh /var/backup_sh/syslogs_maintenance/syslogs_maintenance.sh
+COPY ./shell/syslogs_maintenance/syslogs_maintenance.sql /var/backup_sh/syslogs_maintenance/syslogs_maintenance.sql
 
 RUN nkf -Lu  --overwrite /var/backup_sh/pg_dumpall.sh
 RUN nkf -Lu  --overwrite /var/backup_sh/pg_rman_env.sh
 RUN nkf -Lu  --overwrite /var/backup_sh/pg_rman.sh
 RUN nkf -Lu  --overwrite /var/backup_sh/syncToS3.sh
 RUN nkf -Lu  --overwrite /var/backup_sh/db_maintenance.sh
+RUN nkf -Lu  --overwrite /var/backup_sh/syslogs_maintenance/syslogs_maintenance.sh
+RUN nkf -Lu  --overwrite /var/backup_sh/syslogs_maintenance/syslogs_maintenance.sql
 
 RUN chmod +x /var/backup_sh/pg_dumpall.sh
 RUN chmod +x /var/backup_sh/pg_rman.sh
 RUN chmod +x /var/backup_sh/pg_rman_env.sh
 RUN chmod +x /var/backup_sh/syncToS3.sh
 RUN chmod +x /var/backup_sh/db_maintenance.sh
+RUN chmod +x /var/backup_sh/syslogs_maintenance/syslogs_maintenance.sh
 
 CMD busybox crond -l 2 -L /dev/stderr -f
