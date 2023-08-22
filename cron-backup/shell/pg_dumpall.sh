@@ -22,7 +22,7 @@ mkdir -p $SAVEPATH
 # バックアップ実行
 BACKUP_FILE_NAME=$PREFIX$DATE$EXT
 BACKUP_FILE=$SAVEPATH$PREFIX$DATE$EXT
-time nice -n 19 pg_dumpall -h postgres-db -p 5432  -U postgres | nice -n 19 7z a -mx=9 -mhe=on -p$ZIP_PASSWORD -si$BACKUP_FILE_NAME $BACKUP_FILE.7z
+time nice -n 19 pg_dumpall -h postgres-db -p 5432  -U postgres | nice -n 19 7z a -mx=3 -mhe=on -p$ZIP_PASSWORD -si$BACKUP_FILE_NAME $BACKUP_FILE.7z
 
 # 保存期間が過ぎたファイルの削除
 find $SAVEPATH_BASE -type f -daystart -mtime $PERIOD -exec rm {} \;
