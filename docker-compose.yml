@@ -9,6 +9,7 @@ services:
   postgres-db:
     build: postgres/.
     container_name: db-container
+    shm_size: 1g
     ports:
       - "5432:5432"
     environment:
