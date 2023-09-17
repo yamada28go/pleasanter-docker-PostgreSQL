@@ -33,7 +33,7 @@ services:
   # wbsサイト本体      
   pleasanter-web:
     container_name: pleasanter-web
-    image: pleasanter-local-web:1.3.40.1
+    image: pleasanter-local-web:1.3.46.1
     depends_on:
       - postgres-db
     environment:
@@ -82,7 +82,7 @@ services:
   # DB定義更新
   codedefiner:
       container_name: codedefiner
-      image: pleasanter-local-codedefiner:1.3.40.1
+      image: pleasanter-local-codedefiner:1.3.46.1
       depends_on:
         - postgres-db
       environment:
