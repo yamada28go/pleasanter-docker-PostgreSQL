@@ -33,6 +33,8 @@ services:
         max-file: "10"
     volumes:
       - ssl_data:/var/lib/https-portal
+    networks:
+      - pleasanter-service-network      
 
 volumes:
   ssl_data:
