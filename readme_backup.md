@@ -102,6 +102,17 @@ flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/pg_rman.sh INCREMENTAL
 
 ### 完全バックアップ
 
+CodeDefinerをかける前の状態を指定する。
+
+
+dbコンテナにバックアップファイルをマウントする。
+該当ファイルをリストアする。
+
+
+```
+ psql -h postgres-db -p 5432  -U postgres -f backup
+```
+ psql -h postgres-db -p 5432  -U postgres -f backup
 
 
 ### PITR
