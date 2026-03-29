@@ -1,6 +1,6 @@
 ## バックアップ / 復元
 
-このリポジトリでは `cron-backup` コンテナで以下のバックアップを扱います。
+このリポジトリでは `cron-backup` コンテナでバックアップとdbのメンテナンス動作を行います。
 
 - `pg_dumpall` による全体ダンプ
 - `pg_rman` による PITR 用バックアップ
@@ -9,6 +9,21 @@
 
 - `/var/db_backup/dumpall`
 - `/var/db_backup/PITR`
+
+## cron-backup で定期実行している処理
+
+`cron-backup` コンテナでは、以下の cron ジョブが動作しています。
+
+| No | 実行タイミング | コマンド | 用途 |
+| --- | --- | --- | --- |
+| 1 | 毎日 00:15 | `flock --timeout=600 /tmp/db_backup.lock /var/backup_sh/pg_dumpall.sh` | `pg_dumpall` による全体ダンプを取得します |
+| 2 | 30 分ごと | `flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/pg_rman.sh INCREMENTAL` | `pg_rman` による差分バックアップを取得します |
+| 3 | 毎日 23:15 | `flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/pg_rman.sh FULL` | `pg_rman` によるフルバックアップを取得します |
+| 4 | 毎日 22:45 | `flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/db_maintenance.sh` | DB メンテナンス処理を実行します |
+
+補足:
+
+- すべてのジョブは `flock` で排他制御され、同時実行を避けています
 
 ## バックアップ
 
@@ -92,7 +107,7 @@ PITR は PostgreSQL の停止、復旧設定、再起動を伴います。運用
   - `BACKUP_DB_USER`
   - `POSTGRES_DB`
 - `.env.secrets`
-  - `PGPASSWORD`
+  - `POSTGRES_PASSWORD`
   - `ZIP_PASSWORD`
 
 ## 参考

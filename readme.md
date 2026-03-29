@@ -109,9 +109,23 @@ BACKUP_DB_USER=postgres
 
 # Pleasanter コンテナのバージョン
 PLEASANTER_VERSION=latest
+```
+
+上記が、このリポジトリに含まれる `.env` の現在値です。
+
+必要に応じて、以下の PostgreSQL 起動オプションも `.env` に追加して上書きできます。
+
+```env
+# PostgreSQL の待受アドレス
 POSTGRES_LISTEN_ADDRESSES=*
+
+# WAL アーカイブを有効化するか
 POSTGRES_ARCHIVE_MODE=on
+
+# WAL レベル
 POSTGRES_WAL_LEVEL=replica
+
+# WAL アーカイブ時のコピーコマンド
 POSTGRES_ARCHIVE_COMMAND=cp %p /var/lib/postgresql/arclog/%f
 ```
 
@@ -176,7 +190,7 @@ docker compose up -d
 
 ## SSL で起動する
 
-SSL 化には [docker-compose.https-portal.yml](./docker-compose.https-portal.yml) を使います。構成としては、Qiita 記事にある通り `https-portal` が `pleasanter-web` の前段に入り、Let's Encrypt 証明書の取得と HTTPS 終端を担当します。
+SSL 化には [docker-compose.https-portal.yml](./docker-compose.https-portal.yml) を使います。構成としては、`https-portal` が `pleasanter-web` の前段に入り、Let's Encrypt 証明書の取得と HTTPS 終端を担当します。
 
 事前条件:
 
