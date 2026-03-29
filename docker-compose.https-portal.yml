@@ -4,7 +4,7 @@ version: "3.7"
 services:
   # 通信を暗号化
   https-portal:
-    image: steveltn/https-portal:1    
+    image: steveltn/https-portal:1
     ports:
       - "80:80"
       - "443:443"
@@ -34,7 +34,7 @@ services:
     volumes:
       - ssl_data:/var/lib/https-portal
     networks:
-      - pleasanter-service-network      
+      - pleasanter-service-network
 
 volumes:
   ssl_data:
@@ -48,4 +48,3 @@ networks:
   # 他のcomposerと連携できるように、
   # ネットワーク名を明示的に設定する
   pleasanter-service-network:
-

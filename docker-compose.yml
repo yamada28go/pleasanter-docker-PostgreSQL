@@ -50,7 +50,7 @@ services:
       start_period: 20s
     networks:
       - pleasanter-service-network
-  # webサイト本体      
+  # webサイト本体
   pleasanter-web:
     image: implem/pleasanter:${PLEASANTER_VERSION}
     restart: unless-stopped
@@ -60,7 +60,7 @@ services:
       postgres-db:
         condition: service_healthy
     ports:
-      - '127.0.0.1:50001:8080'
+      - "127.0.0.1:50001:8080"
     # ports:
     #   # https-portalと被らないようにドメインを分ける
     #   - "8081:80"
@@ -73,7 +73,7 @@ services:
     #   - ./pleasanter/parameters:/var/opt/parameters
     networks:
       - pleasanter-service-network
-  
+
   # 定期バックアップ用
   cron-backup:
     build:
@@ -110,21 +110,21 @@ services:
 
   # DB定義更新
   codedefiner:
-      image: implem/pleasanter:codedefiner
-      env_file:
-        - .env.secrets
-      depends_on:
-        postgres-db:
-          condition: service_healthy
-      networks:
-        - pleasanter-service-network
-      # このサービスをデフォルトで起動させないようにprofilesを指定する
-      # 
-      # [参考]
-      # docker-compose up で一部のサービスを除外する方法
-      #https://gotohayato.com/content/505/      
-      profiles:
-        - extra
+    image: implem/pleasanter:codedefiner
+    env_file:
+      - .env.secrets
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - pleasanter-service-network
+    # このサービスをデフォルトで起動させないようにprofilesを指定する
+    #
+    # [参考]
+    # docker-compose up で一部のサービスを除外する方法
+    #https://gotohayato.com/content/505/
+    profiles:
+      - extra
 volumes:
   db-data:
     driver: local

@@ -26,12 +26,12 @@
 
 図に対応するコンテナ一覧:
 
-| No | コンテナ名 | 概要 | 定義ファイル |
-| --- | --- | --- | --- |
-| 1 | `https-portal` | HTTPS 通信用。Let's Encrypt を用いた証明書取得の自動化。設定ファイルを用意済みのため HTTPS 化を追加しやすい | `docker-compose.https-portal.yml` |
-| 2 | `pleasanter-web` | Pleasanter の Web システム | `docker-compose.yml` |
-| 3 | `postgres-db` | PostgreSQL DB。Pleasanter が使用するデータベース | `docker-compose.yml` |
-| 4 | `cron-backup` | バックアップ用の cron プログラムを格納 | `docker-compose.yml` |
+| No  | コンテナ名       | 概要                                                                                                        | 定義ファイル                      |
+| --- | ---------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| 1   | `https-portal`   | HTTPS 通信用。Let's Encrypt を用いた証明書取得の自動化。設定ファイルを用意済みのため HTTPS 化を追加しやすい | `docker-compose.https-portal.yml` |
+| 2   | `pleasanter-web` | Pleasanter の Web システム                                                                                  | `docker-compose.yml`              |
+| 3   | `postgres-db`    | PostgreSQL DB。Pleasanter が使用するデータベース                                                            | `docker-compose.yml`              |
+| 4   | `cron-backup`    | バックアップ用の cron プログラムを格納                                                                      | `docker-compose.yml`              |
 
 全体の説明:
 

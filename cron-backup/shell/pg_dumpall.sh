@@ -1,6 +1,9 @@
 #!/bin/bash
 
-SCRIPT_DIR=$(cd $(dirname $0); pwd)
+SCRIPT_DIR=$(
+	cd $(dirname $0)
+	pwd
+)
 source ${SCRIPT_DIR}/common.sh
 source ${SCRIPT_DIR}/pg_rman_env.sh
 
@@ -10,14 +13,14 @@ PERIOD='+2'
 # バックアップ先ディレクトリ
 SAVEPATH_BASE='/var/db_backup/dumpall'
 # 日付
-DATE=`date '+%Y%m%d-%H%M%S'`
+DATE=$(date '+%Y%m%d-%H%M%S')
 # 先頭文字
 PREFIX='postgres-'
 # 拡張子
 EXT='.sql'
 
 #バックアップディレクトリ作成
-SAVEPATH=$SAVEPATH_BASE/`date '+%Y%m'`/
+SAVEPATH=$SAVEPATH_BASE/$(date '+%Y%m')/
 log_info "pg_dumpall backup started. host=${DB_HOST} port=${DB_PORT} user=${DB_USER} savepath=${SAVEPATH}"
 mkdir -p $SAVEPATH
 

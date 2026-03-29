@@ -24,11 +24,11 @@ PITR は、日次のフルバックアップを起点に、その後の差分バ
 
 整理すると以下の考え方です。
 
-| 種別 | 主な用途 | 想定保持場所 | 補足 |
-| --- | --- | --- | --- |
-| `pg_rman` FULL | PITR の起点となる日次フルバックアップ | ローカル volume | その日の差分バックアップと WAL の基準になります |
-| `pg_rman` INCREMENTAL | 日中の差分バックアップ | ローカル volume | 同日内の細かい時点復旧に使います |
-| `pg_dumpall` | DB 全体の退避、別環境への移行、最終退避 | ローカル volume と必要に応じた外部保管 | PITR とは別系統の保険です |
+| 種別                  | 主な用途                                | 想定保持場所                           | 補足                                            |
+| --------------------- | --------------------------------------- | -------------------------------------- | ----------------------------------------------- |
+| `pg_rman` FULL        | PITR の起点となる日次フルバックアップ   | ローカル volume                        | その日の差分バックアップと WAL の基準になります |
+| `pg_rman` INCREMENTAL | 日中の差分バックアップ                  | ローカル volume                        | 同日内の細かい時点復旧に使います                |
+| `pg_dumpall`          | DB 全体の退避、別環境への移行、最終退避 | ローカル volume と必要に応じた外部保管 | PITR とは別系統の保険です                       |
 
 S3 への保管方針としては、日次のフルバックアップを長めに保持するバックアップとして扱う想定です。
 一方で、短期保持用のバックアップ領域へは同じ内容を二重に同期しない前提としています。
@@ -123,12 +123,12 @@ export S3_TARGET_DIRECTORY_NAME=DB_Backup
 
 `cron-backup` コンテナでは、以下の cron ジョブが動作しています。
 
-| No | 実行タイミング | コマンド | 用途 |
-| --- | --- | --- | --- |
-| 1 | 毎日 00:15 | `flock --timeout=600 /tmp/db_backup.lock /var/backup_sh/pg_dumpall.sh` | `pg_dumpall` による全体ダンプを取得します |
-| 2 | 30 分ごと | `flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/pg_rman.sh INCREMENTAL` | `pg_rman` による差分バックアップを取得します |
-| 3 | 毎日 23:15 | `flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/pg_rman.sh FULL` | `pg_rman` によるフルバックアップを取得します |
-| 4 | 毎日 22:45 | `flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/db_maintenance.sh` | DB メンテナンス処理を実行します |
+| No  | 実行タイミング | コマンド                                                                        | 用途                                         |
+| --- | -------------- | ------------------------------------------------------------------------------- | -------------------------------------------- |
+| 1   | 毎日 00:15     | `flock --timeout=600 /tmp/db_backup.lock /var/backup_sh/pg_dumpall.sh`          | `pg_dumpall` による全体ダンプを取得します    |
+| 2   | 30 分ごと      | `flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/pg_rman.sh INCREMENTAL` | `pg_rman` による差分バックアップを取得します |
+| 3   | 毎日 23:15     | `flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/pg_rman.sh FULL`        | `pg_rman` によるフルバックアップを取得します |
+| 4   | 毎日 22:45     | `flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/db_maintenance.sh`      | DB メンテナンス処理を実行します              |
 
 補足:
 

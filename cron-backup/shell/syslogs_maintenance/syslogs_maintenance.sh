@@ -1,6 +1,9 @@
 #!/bin/bash
 
-SCRIPT_DIR=$(cd $(dirname $0); pwd)
+SCRIPT_DIR=$(
+	cd $(dirname $0)
+	pwd
+)
 source ${SCRIPT_DIR}/../common.sh
 source ${SCRIPT_DIR}/../pg_rman_env.sh
 
@@ -10,7 +13,7 @@ PERIOD='+2'
 # バックアップ先ディレクトリ
 SAVEPATH_BASE='/var/db_backup/syslog'
 # 日付
-TODAY_DATE=`date '+%Y-%m-%d-%H%M%S'`
+TODAY_DATE=$(date '+%Y-%m-%d-%H%M%S')
 # 先頭文字
 PREFIX='syslog-'
 # 拡張子
@@ -21,7 +24,7 @@ TWO_DAYS_AGO=$(date -d "2 days ago" +"%Y-%m-%d")
 log_info "Syslog maintenance started. host=${DB_HOST} port=${DB_PORT} db=${DB_NAME} target_date=${TWO_DAYS_AGO}"
 
 #バックアップディレクトリ作成
-SAVEPATH=$SAVEPATH_BASE/`date '+%Y%m'`/
+SAVEPATH=$SAVEPATH_BASE/$(date '+%Y%m')/
 mkdir -p $SAVEPATH
 
 # バックアップ実行
@@ -35,7 +38,7 @@ BACKUP_FILE=$SAVEPATH$PREFIX$TODAY_DATE$EXT
 # 出力先パス
 # /tmp/__old_syslog_records.7z
 log_info "Exporting old syslog records"
-psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -f ${SCRIPT_DIR}/syslogs_maintenance.sql -v target_datetime=$TWO_DAYS_AGO" 00:00:00" 
+psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -f ${SCRIPT_DIR}/syslogs_maintenance.sql -v target_datetime=$TWO_DAYS_AGO" 00:00:00"
 
 # 作成されたファイルを所定の場所に移動する
 log_info "Moving syslog archive to ${BACKUP_FILE}"
