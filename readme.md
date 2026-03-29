@@ -253,6 +253,8 @@ docker compose -f docker-compose.yml -f docker-compose.https-portal.yml up -d
 - [pg_dumpall 復元手順](./doc/pg-dumpall-restore.md)
 - [PITR 復元手順](./doc/pitr-restore.md)
 
+S3 同期の有効化条件や `syncToS3.sh` の動きも、[バックアップ / 復元手順](./doc/backup-restore.md) にまとめています。
+
 ## 参考
 
 - [Pleasanter 公式: Dockerで起動する](https://pleasanter.org/ja/manual/getting-started-pleasanter-docker)
