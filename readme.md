@@ -1,98 +1,74 @@
 ## これは何
 
-オープンソースWebDB [プリザンター](https://github.com/Implem/Implem.Pleasanter) を、簡単に起動できるようシングルコンテナにまとめたComposeです。
-詳細な使い方に関しては[Quiita](https://qiita.com/yamada28go/items/b9e6acdb4cca9572c7a6)の記事を参照してください。
+Pleasanter を PostgreSQL と一緒に Docker Compose で動かすための構成です。
+このリポジトリでは、Pleasanter 本体に加えて以下をまとめて扱えます。
 
-### 特徴
-vpsのような環境で簡単にPleasanterが起動して運用できるように整備してあります。
+- PostgreSQL
+- `cron-backup` コンテナによるバックアップ
+- `https-portal` を使った HTTPS 化
 
+`docker-compose.https-portal.yml` を用意しているため、公開ドメインとポート条件が揃っていれば HTTPS 設定も比較的簡単に追加できます。
 
-----
+セットアップの考え方は [Pleasanter 公式の Docker 手順](https://pleasanter.org/ja/manual/getting-started-pleasanter-docker) を基本として調整しています。
 
-## 使い方
+## 前提
 
-[Pleasanter](https://github.com/Implem/Implem.Pleasanter/releases)
+- Docker / Docker Compose が使えること
+- x86 / arm環境対応
 
-### 1. ダウンロード
+## 最短起動手順
 
-まずは、[Pleasanter](https://github.com/Implem/Implem.Pleasanter/releases)を取得します。
+### 1. 設定ファイルを用意
 
-複数のファイルがありますが、ソースコードを取得してください。
-
-### 2. Pleasanterのビルド
-プリザンターをビルドします。
-ローカルで使用するバージョンを指定しておきます。
-
-```
-docker build . -t pleasanter-local-web:1.3.40.1 -f Implem.Pleasanter/Dockerfile --no-cache
+```bash
+cp .env.secrets.example .env.secrets
 ```
 
-```
-docker build . -t pleasanter-local-codedefiner:1.3.40.1 -f Implem.CodeDefiner/Dockerfile --no-cache
-```
+### 2. イメージをビルド
 
-### 3. 環境変数の設定
-
-#### 3.1. postgresユーザーの話
-
-少しややこしいのですが、pleasanterが動作するためには、postgresのユーザー(ロール)は3種類必用です。
-以下に、各ロールの設定を示します。
-
-| id | 種別    | 意味                     | 名称                    | パスワード                |設定場所|
-| -- | ------- | ----------------------- | ----------------------- | ------------------------- |---|
-| 1  | SA      | postgresの管理者         | postgres                | mysecretpassword1234_sa  |.env|
-| 2  | Owner   | スキーマを保持するユーザー | Implem.Pleasanter_Owner | mysecretpassword1234_owner |.env , postgres/init/1_create.sql|
-| 3  | User    | スキーマを使用するユーザー | Implem.Pleasanter_User  | mysecretpassword1234_user  |.env|
-
-今回の環境において、これら変数の設定箇所は複数のファイルに分かれています。
-Ownerだけ複数環境に分かれているため設定箇所に注意しましょう。
-
-実際の運用時には、パスワードは任意の値に変更してください。
-
-### 3. DBを初期化する
-
-作成した設定でコンテナを起動します。
-これにより、上記の環境設定でpostgresが初期化されます。
-dbコンテナはバックグラウンドで起動します。
-
-```
-docker compose up postgres-db -d
+```bash
+docker compose build
 ```
 
-``` 
-docker-compose down --volumes --remove-orphans && docker compose up postgres-db 
+### 3. DB 定義を初期化
+
+PleasanterのDB関係のマイグレーションを行う。
+
+```bash
+docker compose run --rm codedefiner _rds /y /l "ja" /z "Asia/Tokyo"
 ```
 
-### 4. プリザンターのDB定義を初期化する
+### 4. Pleasanter を起動
 
-先にビルドしたイメージを使って、dbにプリザンターの環境を作ります。
-以下コマンドを実行すると必用なテーブルが生成されます。
-
-```
-docker-compose run --rm codedefiner _rds
+```bash
+docker compose up -d
 ```
 
-### 5. プリザンターを起動する
+### 5. 動作確認
 
-```
-docker compose up
-```
+ブラウザで以下を開きます。
 
-起動が完了すると以下ポートで動作します。
-ログインして確認してください。
+- `http://localhost:50001/`
 
-[http://localhost:8081/](http://localhost:8081/)
+初期ログイン情報:
 
-デフォルト状態でのログインパスワードは以下となります。
+| ユーザ | パスワード |
+| --- | --- |
+| `Administrator` | `pleasanter` |
 
-| ユーザ     | パスワード    |
-|------------|--------------|
-| Administrator | pleasanter |
+## 詳細ドキュメント
 
+- [構成と全体図](./doc/architecture.md)
+- [設定ファイル](./doc/configuration.md)
+- [SSL で起動する](./doc/ssl.md)
+- [バックアップ / 復元手順](./doc/backup-restore.md)
+- [pg_dumpall 復元手順](./doc/pg-dumpall-restore.md)
+- [PITR 復元手順](./doc/pitr-restore.md)
+
+S3 同期の有効化条件や `syncToS3.sh` の動きも、[バックアップ / 復元手順](./doc/backup-restore.md) にまとめています。
 
 ## 参考
 
-[プリザンターの公式DockerイメージをComposeで動かす](https://qiita.com/imp-kawano/items/a9407d474c1dd39731d2)
-[Pleasanterをサクッと起動できるcompose](https://qiita.com/coleyon/items/8ca7830cdb0515f370de)
-[Docker上で動かしてみた公式記事](https://pleasanter.hatenablog.jp/entry/2019/04/08/191954)
-
+- [Pleasanter 公式: Dockerで起動する](https://pleasanter.org/ja/manual/getting-started-pleasanter-docker)
+- [Qiita: pleasanter+PostgreSQL+SSL+docker な構成を作ってみた](https://qiita.com/yamada28go/items/b9e6acdb4cca9572c7a6)
+- [Qiita: Dockerでバックアップを含む Pleasanter + PostgreSQL 環境を組んでみた](https://qiita.com/yamada28go/items/fe8f85305d388ad30a60)

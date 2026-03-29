@@ -1,5 +1,9 @@
 #!/bin/bash
 
+SCRIPT_DIR=$(cd $(dirname $0); pwd)
+source ${SCRIPT_DIR}/../common.sh
+source ${SCRIPT_DIR}/../pg_rman_env.sh
+
 # ローカルにバックアップファイルを残しておく日数
 PERIOD='+2'
 
@@ -14,9 +18,7 @@ EXT='.7z'
 
 #バックアップの開始時刻
 TWO_DAYS_AGO=$(date -d "2 days ago" +"%Y-%m-%d")
-echo $TWO_DAYS_AGO
-
-SCRIPT_DIR=$(cd $(dirname $0); pwd)
+log_info "Syslog maintenance started. host=${DB_HOST} port=${DB_PORT} db=${DB_NAME} target_date=${TWO_DAYS_AGO}"
 
 #バックアップディレクトリ作成
 SAVEPATH=$SAVEPATH_BASE/`date '+%Y%m'`/
@@ -32,16 +34,21 @@ BACKUP_FILE=$SAVEPATH$PREFIX$TODAY_DATE$EXT
 #
 # 出力先パス
 # /tmp/__old_syslog_records.7z
-psql -h postgres-db -p 5432 -d Implem.Pleasanter -U postgres -f ${SCRIPT_DIR}/syslogs_maintenance.sql -v target_datetime=$TWO_DAYS_AGO" 00:00:00" 
+log_info "Exporting old syslog records"
+psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -f ${SCRIPT_DIR}/syslogs_maintenance.sql -v target_datetime=$TWO_DAYS_AGO" 00:00:00" 
 
 # 作成されたファイルを所定の場所に移動する
+log_info "Moving syslog archive to ${BACKUP_FILE}"
 mv /tmp/__old_syslog_records.7z $BACKUP_FILE
 
 # 保存期間が過ぎたファイルの削除
+log_info "Deleting old syslog archives. retention=${PERIOD} base=${SAVEPATH_BASE}"
 find $SAVEPATH_BASE -type f -daystart -mtime $PERIOD -exec rm {} \;
 
 # 空になったディレクトリを消去
+log_info "Removing empty directories under ${SAVEPATH_BASE}"
 find $SAVEPATH_BASE -type d -empty -delete
 
 # S3同期を行う
+log_info "Starting optional S3 sync for syslog archives"
 source ${SCRIPT_DIR}/../syncToS3.sh syslog false
