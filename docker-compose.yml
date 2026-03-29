@@ -24,8 +24,6 @@ services:
     command:
       - postgres
       - -c
-      - config_file=/etc/postgresql.conf
-      - -c
       - "listen_addresses=${POSTGRES_LISTEN_ADDRESSES:-*}"
       - -c
       - "archive_mode=${POSTGRES_ARCHIVE_MODE:-on}"
@@ -34,8 +32,6 @@ services:
       - -c
       - "archive_command=${POSTGRES_ARCHIVE_COMMAND:-cp %p ${POSTGRES_ARCLOG_PATH:-/var/lib/postgresql/arclog}/%f}"
     volumes:
-      - ./postgres/init:/docker-entrypoint-initdb.d
-      - ./postgres/conf/postgresql.conf:/etc/postgresql.conf
       - *APP_DB_data
       - *APP_DB_arclog
     logging:
