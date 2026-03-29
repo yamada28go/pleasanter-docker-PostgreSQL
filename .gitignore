@@ -1,6 +1,4 @@
 #作業ディレトクリは無視する
 .DS_Store
 
-# パラメータは無視する
-pleasanter/parameters/raw/*
-pleasanter/parameters/customize/*
+.env
