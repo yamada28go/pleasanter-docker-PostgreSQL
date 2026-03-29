@@ -26,11 +26,7 @@ RUN mkdir pg_rman_git && \
   cd pg_rman_git && \
   git clone https://github.com/ossc-db/pg_rman.git && \
   cd pg_rman && \
-  if [ "${PG_VER}" = "18" ]; then \
-    git checkout master; \
-  else \
     git checkout ${RMAN_VER}; \
-  fi && \
   make LDFLAGS="-L/usr/lib/postgresql/${PG_VER}/lib" && \
   make install
 
