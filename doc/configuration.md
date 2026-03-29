@@ -17,7 +17,7 @@ POSTGRES_VERSION=18
 PG_RMAN_VERSION=V1.3.19
 
 # コンテナと PostgreSQL で共通利用するタイムゾーン
-APP_TIMEZONE=Asia/Tokyo
+APP_TIMEZONE=UTC
 
 # PostgreSQL データディレクトリのマウント先
 POSTGRES_VOLUMES_TARGET=/var/lib/postgresql/data
@@ -50,7 +50,7 @@ BACKUP_DB_USER=postgres
 PLEASANTER_VERSION=latest
 ```
 
-`APP_TIMEZONE` は `postgres-db` と `cron-backup` の両方に渡され、`pg_rman show` の表示時刻と PostgreSQL の復旧時刻解釈を揃えるために使います。
+`APP_TIMEZONE` は `postgres-db` と `cron-backup` の両方に渡されます。安全優先の構成では `UTC` を推奨し、Pleasanter の表示タイムゾーンだけを CodeDefiner の `/z "Asia/Tokyo"` で JST に寄せます。
 
 必要に応じて、以下の PostgreSQL 起動オプションも `.env` に追加して上書きできます。
 

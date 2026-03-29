@@ -10,6 +10,10 @@ PITR 復元は、`pg_rman` バックアップと WAL を使って共有データ
 - `postgres-db` 内で実行する例
   - `POSTGRES_USER`, `POSTGRES_DB` を使います
 
+このリポジトリでは、安全優先の構成として `APP_TIMEZONE=UTC` を推奨しています。
+そのため、`pg_rman show` や `pg_rman restore --recovery-target-time` で扱う時刻も UTC 基準で確認・指定してください。
+Pleasanter の画面表示時刻は、CodeDefiner の `/z "Asia/Tokyo"` によって JST 表示へ寄せます。
+
 ### 事前準備と注意
 
 PITR を始めると、`db-data` volume 上の PostgreSQL データは復元対象時点の内容で上書きされます。
@@ -37,6 +41,7 @@ docker compose exec cron-backup flock --timeout=600 /tmp/db_backup.lock /var/bac
 ### 1. 復元対象時刻とバックアップ一覧を確認
 
 まず、どの時刻まで戻すかを決めて、`pg_rman` の取得済みバックアップを確認します。
+時刻はUTCで表示されます。
 
 ```bash
 docker compose exec cron-backup bash -lc 'source /var/backup_sh/pg_rman_env.sh && pg_rman show'
@@ -58,10 +63,11 @@ PostgreSQL は停止済みなので、`--no-deps` を付けた一時コンテナ
 指定時刻へ復元する例:
 
 ```bash
-docker compose run --rm --no-deps cron-backup bash -lc "source /var/backup_sh/pg_rman_env.sh && pg_rman restore --recovery-target-time '2026-03-29 19:00:00'"
+docker compose run --rm --no-deps cron-backup bash -lc "source /var/backup_sh/pg_rman_env.sh && pg_rman restore --recovery-target-time '2026-03-29 10:00:00'"
 ```
 
 必要に応じて、`pg_rman show` で確認した整合の取れた時刻を指定してください。
+(UTCで指定する事となるので注意。)
 
 ### 4. PostgreSQL を起動
 
@@ -119,12 +125,12 @@ docker compose up -d pleasanter-web
 
 ### コマンド例まとめ
 
-以下は、`2026-03-29 19:01:00` 時点へ PITR 復元する場合の一連の例です。
+以下は、`2026-03-29 10:01:00 UTC` 時点へ PITR 復元する場合の一連の例です。
 
 ```bash
 docker compose exec cron-backup bash -lc 'source /var/backup_sh/pg_rman_env.sh && pg_rman show'
 docker compose stop pleasanter-web postgres-db
-docker compose run --rm --no-deps cron-backup bash -lc "source /var/backup_sh/pg_rman_env.sh && pg_rman restore --recovery-target-time '2026-03-29 19:01:00'"
+docker compose run --rm --no-deps cron-backup bash -lc "source /var/backup_sh/pg_rman_env.sh && pg_rman restore --recovery-target-time '2026-03-29 10:01:00'"
 docker compose up -d postgres-db
 docker compose logs -f postgres-db
 docker compose exec postgres-db bash -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select pg_wal_replay_resume();"'
@@ -144,14 +150,14 @@ PITR 復元後の `postgres-db` ログでは、以下の流れで確認します
 成功時の例:
 
 ```text
-2026-03-29 19:06:15.600 JST [33] LOG:  starting point-in-time recovery to 2026-03-29 19:00:04+09
-2026-03-29 19:06:15.981 JST [33] LOG:  recovery stopping before commit of transaction 902, time 2026-03-29 19:00:04.056087+09
-2026-03-29 19:06:15.981 JST [33] LOG:  pausing at the end of recovery
-2026-03-29 19:06:15.981 JST [33] HINT:  Execute pg_wal_replay_resume() to promote.
-2026-03-29 19:06:15.981 JST [1] LOG:  database system is ready to accept read-only connections
-2026-03-29 19:06:28.151 JST [33] LOG:  selected new timeline ID: 3
-2026-03-29 19:06:28.281 JST [33] LOG:  archive recovery complete
-2026-03-29 19:06:28.454 JST [1] LOG:  database system is ready to accept connections
+2026-03-29 10:06:15.600 UTC [33] LOG:  starting point-in-time recovery to 2026-03-29 10:00:04+00
+2026-03-29 10:06:15.981 UTC [33] LOG:  recovery stopping before commit of transaction 902, time 2026-03-29 10:00:04.056087+00
+2026-03-29 10:06:15.981 UTC [33] LOG:  pausing at the end of recovery
+2026-03-29 10:06:15.981 UTC [33] HINT:  Execute pg_wal_replay_resume() to promote.
+2026-03-29 10:06:15.981 UTC [1] LOG:  database system is ready to accept read-only connections
+2026-03-29 10:06:28.151 UTC [33] LOG:  selected new timeline ID: 3
+2026-03-29 10:06:28.281 UTC [33] LOG:  archive recovery complete
+2026-03-29 10:06:28.454 UTC [1] LOG:  database system is ready to accept connections
 ```
 
 読み方:
