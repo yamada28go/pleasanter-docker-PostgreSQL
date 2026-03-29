@@ -33,28 +33,35 @@ Ownerだけ複数環境に分かれているため設定箇所に注意しまし
 実際の運用時には、パスワードは任意の値に変更してください。
 
 
-```
+`.env`
+
+```env
 POSTGRES_VERSION=18
 POSTGRES_VOLUMES_TARGET=/var/lib/postgresql/data
 POSTGRES_USER=postgres
-POSTGRES_PASSWORD=SetSaPWD
 POSTGRES_DB=postgres
 POSTGRES_HOST_AUTH_METHOD=scram-sha-256
 POSTGRES_INITDB_ARGS="--auth-host=scram-sha-256"
-ZIP_PASSWORD=change_me
 BACKUP_DB_HOST=postgres-db
 BACKUP_DB_PORT=5432
 BACKUP_DB_NAME=Implem.Pleasanter
 BACKUP_DB_USER=postgres
 PLEASANTER_VERSION=latest
-Implem_Pleasanter_Rds_PostgreSQL_SaConnectionString="Server=postgres-db;Database=postgres;UID=postgres;PWD=SetSaPWD"
-Implem_Pleasanter_Rds_PostgreSQL_OwnerConnectionString="Server=postgres-db;Database=#ServiceName#;UID=#ServiceName#_Owner;PWD=SetAdminsPWD"
-Implem_Pleasanter_Rds_PostgreSQL_UserConnectionString="Server=postgres-db;Database=#ServiceName#;UID=#ServiceName#_User;PWD=SetUsersPWD"
 POSTGRES_LISTEN_ADDRESSES=*
 POSTGRES_ARCHIVE_MODE=on
 POSTGRES_WAL_LEVEL=replica
 POSTGRES_ARCHIVE_COMMAND=cp %p /var/lib/postgresql/arclog/%f
+```
 
+`.env.secrets`
+
+```env
+POSTGRES_PASSWORD=change_me
+PGPASSWORD=change_me
+ZIP_PASSWORD=change_me
+Implem.Pleasanter_Rds_PostgreSQL_SaConnectionString=Server=postgres-db;Database=postgres;UID=postgres;PWD=change_me
+Implem.Pleasanter_Rds_PostgreSQL_OwnerConnectionString=Server=postgres-db;Database=#ServiceName#;UID=#ServiceName#_Owner;PWD=change_me
+Implem.Pleasanter_Rds_PostgreSQL_UserConnectionString=Server=postgres-db;Database=#ServiceName#;UID=#ServiceName#_User;PWD=change_me
 ```
 
 ```

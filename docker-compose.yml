@@ -9,13 +9,14 @@ services:
       context: postgres/.
       args:
         POSTGRES_VERSION: ${POSTGRES_VERSION:-18}
+    env_file:
+      - .env
+      - .env.secrets
     container_name: db-container
     shm_size: 1g
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - PGDATA=${POSTGRES_VOLUMES_TARGET:-/var/lib/postgresql/data}
       - DATABASE_HOST=localhost
       - DB_EXTENSION=pg_trgm
@@ -47,14 +48,12 @@ services:
   pleasanter-web:
     container_name: pleasanter-web
     image: implem/pleasanter:${PLEASANTER_VERSION}
+    env_file:
+      - .env.secrets
     depends_on:
       - postgres-db
     ports:
       - '50001:8080'
-    environment:
-      Implem.Pleasanter_Rds_PostgreSQL_SaConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_SaConnectionString}
-      Implem.Pleasanter_Rds_PostgreSQL_OwnerConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_OwnerConnectionString}
-      Implem.Pleasanter_Rds_PostgreSQL_UserConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_UserConnectionString}
     # ports:
     #   # https-portalと被らないようにドメインを分ける
     #   - "8081:80"
@@ -74,22 +73,14 @@ services:
       context: cron-backup/.
       args:
         PG_VER: ${POSTGRES_VERSION:-18}
+    env_file:
+      - .env
+      - .env.secrets
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "10"
-    environment:
-      - PGPASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_VERSION=${POSTGRES_VERSION:-18}
-      - POSTGRES_VOLUMES_TARGET=${POSTGRES_VOLUMES_TARGET:-/var/lib/postgresql/data}
-      - ZIP_PASSWORD=${ZIP_PASSWORD:?ZIP_PASSWORD is required}
-      - BACKUP_DB_HOST=${BACKUP_DB_HOST:-postgres-db}
-      - BACKUP_DB_PORT=${BACKUP_DB_PORT:-5432}
-      - BACKUP_DB_NAME=${BACKUP_DB_NAME:-Implem.Pleasanter}
-      - BACKUP_DB_USER=${BACKUP_DB_USER:-postgres}
-      # dbのバックアップデータをs3に同期する
-      # - ENABLE_S3_BACKUP=1
     volumes:
       - *APP_DB_data
       - *APP_DB_arclog
@@ -107,12 +98,10 @@ services:
   codedefiner:
       container_name: codedefiner
       image: implem/pleasanter:codedefiner
+      env_file:
+        - .env.secrets
       depends_on:
         - postgres-db
-      environment:
-        Implem.Pleasanter_Rds_PostgreSQL_SaConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_SaConnectionString}
-        Implem.Pleasanter_Rds_PostgreSQL_OwnerConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_OwnerConnectionString}
-        Implem.Pleasanter_Rds_PostgreSQL_UserConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_UserConnectionString}
       networks:
         - pleasanter-service-network
       # このサービスをデフォルトで起動させないようにprofilesを指定する
