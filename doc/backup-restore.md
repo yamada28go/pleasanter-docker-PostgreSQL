@@ -28,7 +28,6 @@ PITR は、日次のフルバックアップを起点に、その後の差分バ
 | --- | --- | --- | --- |
 | `pg_rman` FULL | PITR の起点となる日次フルバックアップ | ローカル volume | その日の差分バックアップと WAL の基準になります |
 | `pg_rman` INCREMENTAL | 日中の差分バックアップ | ローカル volume | 同日内の細かい時点復旧に使います |
-| WAL アーカイブ | PITR の時点復旧 | ローカル volume | `pg_rman` の FULL / INCREMENTAL と組み合わせて使います |
 | `pg_dumpall` | DB 全体の退避、別環境への移行、最終退避 | ローカル volume と必要に応じた外部保管 | PITR とは別系統の保険です |
 
 S3 への保管方針としては、日次のフルバックアップを長めに保持するバックアップとして扱う想定です。
@@ -96,16 +95,18 @@ docker compose exec cron-backup bash -lc 'source /var/backup_sh/pg_rman_env.sh &
 
 ### `pg_dumpall` バックアップから復元
 
-1. 対象の `.7z` を展開する
-2. PostgreSQL が起動している状態で SQL を流し込む
+停止、退避、接続遮断を含む詳細な復元手順は別ファイルに分離しています。
 
-例:
+- [pg_dumpall 復元手順](./pg-dumpall-restore.md)
 
-```bash
-docker compose exec -T postgres-db psql -U postgres -d postgres < backup.sql
-```
+概要:
 
-実運用では、復元前に対象 DB の停止、退避、接続遮断を先に決めてください。
+- `pleasanter-web` を停止して DB 更新を止める
+- 必要なら復元直前の `pg_dumpall` を取得する
+- 対象の `.7z` を `ZIP_PASSWORD` で展開する
+- 接続状況を確認し、必要なら既存接続を切断する
+- 展開した SQL を PostgreSQL に流し込む
+- 最後に `pleasanter-web` を再起動する
 
 ### PITR 復元
 
