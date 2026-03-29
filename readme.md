@@ -250,6 +250,7 @@ docker compose -f docker-compose.yml -f docker-compose.https-portal.yml up -d
 バックアップと復元の手順は別ファイルに分離しています。
 
 - [バックアップ / 復元手順](./doc/backup-restore.md)
+- [PITR 復元手順](./doc/pitr-restore.md)
 
 ## 参考
 
