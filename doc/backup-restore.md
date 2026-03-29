@@ -33,8 +33,46 @@ PITR は、日次のフルバックアップを起点に、その後の差分バ
 S3 への保管方針としては、日次のフルバックアップを長めに保持するバックアップとして扱う想定です。
 一方で、短期保持用のバックアップ領域へは同じ内容を二重に同期しない前提としています。
 
-`cron-backup/shell/syncToS3.sh` は、`/var/db_backup` 配下を AWS S3 へ `aws s3 sync` する補助スクリプトです。
-有効化条件と動きは次のとおりです。
+つまり運用イメージは次のとおりです。
+
+- ローカル:
+  - 直近の FULL / INCREMENTAL / WAL を保持して、素早く PITR できるようにする
+- S3:
+  - 日次フルバックアップを退避して、中長期の保管先とする
+- 短期バックアップ領域:
+  - ローカルの即時復旧用途を優先し、S3 上のフルバックアップと重複運用しない
+
+## S3 同期
+
+S3 同期は、ローカル volume 上のバックアップに加えて、外部保管先にも同じバックアップを退避できるようにするための仕組みです。
+つまりこの構成では、バックアップを Docker ホスト内だけに閉じず、S3 側にも複製して多重化できるようにしています。
+
+意図:
+
+- ローカル volume 障害時にもバックアップを失いにくくする
+- Docker ホスト外にも退避先を持つ
+- 日次バックアップを中長期保管しやすくする
+
+この処理は `cron-backup/shell/syncToS3.sh` が担当しており、`/var/db_backup` 配下を AWS S3 へ `aws s3 sync` します。
+
+### 何が S3 に送られるか
+
+同期先は次の形式です。
+
+- `s3://<S3_TARGET_BUCKET_NAME>/<S3_TARGET_DIRECTORY_NAME>/<category>`
+
+この `<category>` には、呼び出し元から `dumpall`, `PITR`, `syslog` などが渡されます。
+
+現状の実装では次のようになっています。
+
+- `pg_dumpall.sh`
+  - `syncToS3.sh dumpall false` を呼ぶため、`dumpall` バックアップは S3 同期可能です
+- `pg_rman.sh`
+  - S3 同期呼び出しの記述はありますが、現状はコメントアウトされているため `PITR` バックアップはデフォルトでは S3 同期されません
+- `syslogs_maintenance.sh`
+  - `syncToS3.sh syslog false` を呼びますが、cron 自体がコメントアウトされているため現状は自動実行されません
+
+### 有効化条件
 
 - `cron-backup` コンテナに `ENABLE_S3_BACKUP` が環境変数として渡っていること
 - `/root/.aws/config` と `/root/.aws/S3Config.sh` が `cron-backup` コンテナ内に存在すること
@@ -57,6 +95,8 @@ cron-backup:
     - ./cron-backup/config/aws-cli:/root/.aws/
 ```
 
+### 設定手順
+
 運用で S3 同期を有効にする場合は、少なくとも次を揃えます。
 
 1. `.env.secrets` などに `ENABLE_S3_BACKUP=1` を設定する
@@ -78,21 +118,6 @@ ENABLE_S3_BACKUP=1
 export S3_TARGET_BUCKET_NAME=my-backup-bucket
 export S3_TARGET_DIRECTORY_NAME=DB_Backup
 ```
-
-同期先は次の形式です。
-
-- `s3://<S3_TARGET_BUCKET_NAME>/<S3_TARGET_DIRECTORY_NAME>/<category>`
-
-この `<category>` には、呼び出し元から `dumpall`, `PITR`, `syslog` などが渡されます。
-
-つまり運用イメージは次のとおりです。
-
-- ローカル:
-  - 直近の FULL / INCREMENTAL / WAL を保持して、素早く PITR できるようにする
-- S3:
-  - 日次フルバックアップを退避して、中長期の保管先とする
-- 短期バックアップ領域:
-  - ローカルの即時復旧用途を優先し、S3 上のフルバックアップと重複運用しない
 
 ## cron-backup で定期実行している処理
 
