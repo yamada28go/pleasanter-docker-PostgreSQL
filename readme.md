@@ -34,7 +34,7 @@ Ownerだけ複数環境に分かれているため設定箇所に注意しまし
 
 
 ```
-POSTGRES_VERSION=17
+POSTGRES_VERSION=18
 POSTGRES_VOLUMES_TARGET=/var/lib/postgresql/data
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=SetSaPWD
@@ -45,6 +45,10 @@ PLEASANTER_VERSION=latest
 Implem_Pleasanter_Rds_PostgreSQL_SaConnectionString="Server=postgres-db;Database=postgres;UID=postgres;PWD=SetSaPWD"
 Implem_Pleasanter_Rds_PostgreSQL_OwnerConnectionString="Server=postgres-db;Database=#ServiceName#;UID=#ServiceName#_Owner;PWD=SetAdminsPWD"
 Implem_Pleasanter_Rds_PostgreSQL_UserConnectionString="Server=postgres-db;Database=#ServiceName#;UID=#ServiceName#_User;PWD=SetUsersPWD"
+POSTGRES_LISTEN_ADDRESSES=*
+POSTGRES_ARCHIVE_MODE=on
+POSTGRES_WAL_LEVEL=replica
+POSTGRES_ARCHIVE_COMMAND=cp %p /var/lib/postgresql/arclog/%f
 
 ```
 
@@ -86,4 +90,3 @@ docker compose up
 [プリザンターの公式DockerイメージをComposeで動かす](https://qiita.com/imp-kawano/items/a9407d474c1dd39731d2)
 [Pleasanterをサクッと起動できるcompose](https://qiita.com/coleyon/items/8ca7830cdb0515f370de)
 [Docker上で動かしてみた公式記事](https://pleasanter.hatenablog.jp/entry/2019/04/08/191954)
-

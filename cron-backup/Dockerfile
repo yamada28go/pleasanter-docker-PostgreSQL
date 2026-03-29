@@ -1,9 +1,9 @@
-FROM debian:bullseye-slim
+FROM debian:trixie-slim
 USER root
 
 # pg_rmanの設定
-ARG RMAN_VER=V1.3.15
-ARG PG_VER=15
+ARG RMAN_VER=V1.3.19
+ARG PG_VER=18
 
 # 日本時間に設定
 ENV TZ=Asia/Tokyo
@@ -16,11 +16,12 @@ COPY ./config/crontab /var/spool/cron/crontabs/root
 RUN nkf -Lu --overwrite /var/spool/cron/crontabs/root
 
 # Postgress クライアントをインストール
-RUN apt -y install lsb-release wget gnupg2 &&\
-  wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - 
-RUN  echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee  /etc/apt/sources.list.d/pgdg.list &&\
-  apt update &&\
-  apt -y install postgresql-client-${PG_VER}
+RUN apt-get update && \
+  apt-get install -y lsb-release wget gnupg2 ca-certificates && \
+  wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
+RUN echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+  apt-get update && \
+  apt-get install -y postgresql-client-${PG_VER}
 
 # バックアップに使用するツール
 RUN apt-get -y install p7zip-full bc
@@ -28,15 +29,19 @@ RUN apt-get -y install p7zip-full bc
 # pg_rmanのビルドツールをインストール
 WORKDIR /root
 RUN apt update &&\
-  apt-get install -y gcc make libpq-dev zlib1g-dev libpam0g-dev libssl-dev libselinux1-dev libkrb5-dev libedit-dev postgresql-server-dev-${PG_VER} git libzstd-dev liblz4-dev libreadline-dev
+  apt-get install -y gcc make libpq-dev zlib1g-dev libpam0g-dev libssl-dev libselinux1-dev libkrb5-dev libedit-dev postgresql-server-dev-${PG_VER} git libzstd-dev liblz4-dev libreadline-dev libnuma-dev
 # Release zipだとビルド出来なくなっていたので、
 # gitからtag指定で取得する
 RUN mkdir pg_rman_git &&\
   cd pg_rman_git &&\
   git clone https://github.com/ossc-db/pg_rman.git &&\
   cd pg_rman &&\
-  git checkout ${RMAN_VER} &&\
-  make &&\
+  if [ "${PG_VER}" = "18" ]; then \
+    git checkout master; \
+  else \
+    git checkout ${RMAN_VER}; \
+  fi &&\
+  make LDFLAGS="-L/usr/lib/postgresql/${PG_VER}/lib" &&\
   make install
 
 # S3用自動バックアップ用にAWS　CLIをインストール

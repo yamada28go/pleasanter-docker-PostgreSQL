@@ -5,7 +5,10 @@ x-var-db-arclog: &APP_DB_arclog "db-arclog:/var/lib/postgresql/arclog"
 services:
   #DB本体
   postgres-db:
-    build: postgres/.
+    build:
+      context: postgres/.
+      args:
+        POSTGRES_VERSION: ${POSTGRES_VERSION:-18}
     container_name: db-container
     shm_size: 1g
     ports:
@@ -15,7 +18,18 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_HOST=localhost
       - DB_EXTENSION=pg_trgm
-    command: 'postgres -c config_file="/etc/postgresql.conf"'
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql.conf
+      - -c
+      - "listen_addresses=${POSTGRES_LISTEN_ADDRESSES:-*}"
+      - -c
+      - "archive_mode=${POSTGRES_ARCHIVE_MODE:-on}"
+      - -c
+      - "wal_level=${POSTGRES_WAL_LEVEL:-replica}"
+      - -c
+      - "archive_command=${POSTGRES_ARCHIVE_COMMAND:-cp %p /var/lib/postgresql/arclog/%f}"
     volumes:
       - ./postgres/init:/docker-entrypoint-initdb.d
       - ./postgres/conf/postgresql.conf:/etc/postgresql.conf
@@ -57,6 +71,8 @@ services:
   cron-backup:
     build:
       context: cron-backup/.
+      args:
+        PG_VER: ${POSTGRES_VERSION:-18}
     logging:
       driver: "json-file"
       options:
@@ -126,4 +142,3 @@ networks:
   # 他のcomposerと連携できるように、
   # ネットワーク名を明示的に設定する
   pleasanter-service-network:
-

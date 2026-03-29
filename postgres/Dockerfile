@@ -1,4 +1,5 @@
-FROM postgres:15-alpine
+ARG POSTGRES_VERSION=18
+FROM postgres:${POSTGRES_VERSION}-alpine
 ENV LANG ja_JP.utf8
 
 # バックアップ用のディレクトリを生成しておく
