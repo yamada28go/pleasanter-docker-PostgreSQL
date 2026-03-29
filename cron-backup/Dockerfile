@@ -2,11 +2,12 @@ FROM debian:trixie-slim AS base
 USER root
 
 # pg_rmanの設定
-ARG RMAN_VER=V1.3.19
-ARG PG_VER=18
+ARG PG_RMAN_VERSION=V1.3.19
+ARG POSTGRES_VERSION=18
 
 # 日本時間に設定
 ENV TZ=Asia/Tokyo
+ENV PG_VER=${POSTGRES_VERSION}
 
 RUN apt-get update && \
   apt-get install -y lsb-release wget gnupg2 ca-certificates && \
@@ -26,7 +27,7 @@ RUN mkdir pg_rman_git && \
   cd pg_rman_git && \
   git clone https://github.com/ossc-db/pg_rman.git && \
   cd pg_rman && \
-    git checkout ${RMAN_VER}; \
+    git checkout ${PG_RMAN_VERSION}; \
   make LDFLAGS="-L/usr/lib/postgresql/${PG_VER}/lib" && \
   make install
 

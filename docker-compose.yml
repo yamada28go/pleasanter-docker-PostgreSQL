@@ -77,7 +77,8 @@ services:
     build:
       context: cron-backup/.
       args:
-        PG_VER: ${POSTGRES_VERSION:-18}
+        POSTGRES_VERSION: ${POSTGRES_VERSION:-18}
+        PG_RMAN_VERSION: ${PG_RMAN_VERSION:-V1.3.19}
     restart: unless-stopped
     env_file:
       - .env
