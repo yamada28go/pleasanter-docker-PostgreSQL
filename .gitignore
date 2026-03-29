@@ -1,5 +1,4 @@
 #作業ディレトクリは無視する
 .DS_Store
 
-.env
 .env.secrets
