@@ -111,17 +111,6 @@ services:
       #https://gotohayato.com/content/505/      
       profiles:
         - extra
-
-  # codedefiner:
-  #   container_name: codedefiner
-  #   image: implem/pleasanter:codedefiner
-  #   depends_on:
-  #     - postgres-db
-  #   environment:
-  #     Implem.Pleasanter_Rds_PostgreSQL_SaConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_SaConnectionString}
-  #     Implem.Pleasanter_Rds_PostgreSQL_OwnerConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_OwnerConnectionString}
-  #     Implem.Pleasanter_Rds_PostgreSQL_UserConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_UserConnectionString}
-
 volumes:
   db-data:
     driver: local
