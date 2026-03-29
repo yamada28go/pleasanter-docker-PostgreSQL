@@ -5,10 +5,7 @@ x-var-db-arclog: &APP_DB_arclog "db-arclog:${POSTGRES_ARCLOG_PATH:-/var/lib/post
 services:
   #DB本体
   postgres-db:
-    build:
-      context: postgres/.
-      args:
-        POSTGRES_VERSION: ${POSTGRES_VERSION:-18}
+    image: postgres:${POSTGRES_VERSION:-18}-alpine
     env_file:
       - .env
       - .env.secrets
@@ -58,7 +55,7 @@ services:
       postgres-db:
         condition: service_healthy
     ports:
-      - '50001:8080'
+      - '127.0.0.1:50001:8080'
     # ports:
     #   # https-portalと被らないようにドメインを分ける
     #   - "8081:80"
