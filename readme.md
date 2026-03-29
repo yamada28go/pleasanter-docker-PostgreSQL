@@ -80,6 +80,9 @@ POSTGRES_VERSION=18
 # pg_rman の取得バージョン
 PG_RMAN_VERSION=V1.3.19
 
+# コンテナと PostgreSQL で共通利用するタイムゾーン
+APP_TIMEZONE=Asia/Tokyo
+
 # PostgreSQL データディレクトリのマウント先
 POSTGRES_VOLUMES_TARGET=/var/lib/postgresql/data
 
@@ -112,6 +115,8 @@ PLEASANTER_VERSION=latest
 ```
 
 上記が、このリポジトリに含まれる `.env` の現在値です。
+
+`APP_TIMEZONE` は `postgres-db` と `cron-backup` の両方に渡され、`pg_rman show` の表示時刻と PostgreSQL の復旧時刻解釈を揃えるために使います。
 
 必要に応じて、以下の PostgreSQL 起動オプションも `.env` に追加して上書きできます。
 

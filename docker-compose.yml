@@ -15,12 +15,17 @@ services:
       - "127.0.0.1:5432:5432"
     environment:
       - PGDATA=${POSTGRES_VOLUMES_TARGET:-/var/lib/postgresql/data}
+      - TZ=${APP_TIMEZONE:-Asia/Tokyo}
       - DATABASE_HOST=localhost
       - DB_EXTENSION=pg_trgm
     command:
       - postgres
       - -c
       - "listen_addresses=${POSTGRES_LISTEN_ADDRESSES:-*}"
+      - -c
+      - "timezone=${APP_TIMEZONE:-Asia/Tokyo}"
+      - -c
+      - "log_timezone=${APP_TIMEZONE:-Asia/Tokyo}"
       - -c
       - "archive_mode=${POSTGRES_ARCHIVE_MODE:-on}"
       - -c
@@ -80,6 +85,8 @@ services:
     env_file:
       - .env
       - .env.secrets
+    environment:
+      - TZ=${APP_TIMEZONE:-Asia/Tokyo}
     depends_on:
       postgres-db:
         condition: service_healthy
