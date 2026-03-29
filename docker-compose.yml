@@ -1,6 +1,6 @@
 # 共通環境変数を定義
 x-var-db-data: &APP_DB_data "db-data:/var/lib/postgresql/data"
-x-var-db-arclog: &APP_DB_arclog "db-arclog:/var/lib/postgresql/arclog"
+x-var-db-arclog: &APP_DB_arclog "db-arclog:${POSTGRES_ARCLOG_PATH:-/var/lib/postgresql/arclog}"
 
 services:
   #DB本体
@@ -31,7 +31,7 @@ services:
       - -c
       - "wal_level=${POSTGRES_WAL_LEVEL:-replica}"
       - -c
-      - "archive_command=${POSTGRES_ARCHIVE_COMMAND:-cp %p /var/lib/postgresql/arclog/%f}"
+      - "archive_command=${POSTGRES_ARCHIVE_COMMAND:-cp %p ${POSTGRES_ARCLOG_PATH:-/var/lib/postgresql/arclog}/%f}"
     volumes:
       - ./postgres/init:/docker-entrypoint-initdb.d
       - ./postgres/conf/postgresql.conf:/etc/postgresql.conf

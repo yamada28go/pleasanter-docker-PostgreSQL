@@ -12,11 +12,11 @@ export KEEP_DATA_DAYS=1
 export SAVEPATH_BASE='/var/db_backup/PITR'
 export BACKUP_PATH=$SAVEPATH_BASE
 export PGDATA="${POSTGRES_VOLUMES_TARGET:-/var/lib/postgresql/data}"
-export ARCLOG_PATH=/var/lib/postgresql/arclog
+export ARCLOG_PATH="${POSTGRES_ARCLOG_PATH:-/var/lib/postgresql/arclog}"
 
 # DB接続設定
 export DB_HOST="${BACKUP_DB_HOST:-postgres-db}"
 export DB_PORT="${BACKUP_DB_PORT:-5432}"
-export DB_NAME="${BACKUP_DB_NAME:-Implem.Pleasanter}"
+export DB_NAME="${POSTGRES_DB:-postgres}"
 export DB_USER="${BACKUP_DB_USER:-postgres}"
 export HOST_CONFIG="--host=${DB_HOST} --port=${DB_PORT} --username ${DB_USER}"
