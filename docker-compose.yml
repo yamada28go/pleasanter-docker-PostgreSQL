@@ -1,9 +1,10 @@
+---
 # 共通環境変数を定義
 x-var-db-data: &APP_DB_data "db-data:/var/lib/postgresql/data"
 x-var-db-arclog: &APP_DB_arclog "db-arclog:${POSTGRES_ARCLOG_PATH:-/var/lib/postgresql/arclog}"
 
 services:
-  #DB本体
+  # DB本体
   postgres-db:
     image: postgres:${POSTGRES_VERSION:-18}-alpine
     env_file:
@@ -118,11 +119,11 @@ services:
         condition: service_healthy
     networks:
       - pleasanter-service-network
-    # このサービスをデフォルトで起動させないようにprofilesを指定する
+    # このサービスをデフォルトで起動させないように profiles を指定する
     #
     # [参考]
     # docker-compose up で一部のサービスを除外する方法
-    #https://gotohayato.com/content/505/
+    # https://gotohayato.com/content/505/
     profiles:
       - extra
 volumes:

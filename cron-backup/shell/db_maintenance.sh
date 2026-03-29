@@ -1,11 +1,13 @@
 #!/bin/bash
 
 SCRIPT_DIR=$(
-	cd $(dirname $0)
+	cd "$(dirname "$0")" || exit 1
 	pwd
 )
-source ${SCRIPT_DIR}/common.sh
-source ${SCRIPT_DIR}/pg_rman_env.sh
+# shellcheck source=cron-backup/shell/common.sh
+source "${SCRIPT_DIR}/common.sh"
+# shellcheck source=cron-backup/shell/pg_rman_env.sh
+source "${SCRIPT_DIR}/pg_rman_env.sh"
 
 # DBをメンテナンスする
 log_info "DB maintenance started. host=${DB_HOST} port=${DB_PORT} db=${DB_NAME} user=${DB_USER}"

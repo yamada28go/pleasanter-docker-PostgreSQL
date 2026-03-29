@@ -1,6 +1,7 @@
+---
 version: "3.7"
 
-#HTTP-Potal用の設定
+# HTTP-Potal用の設定
 services:
   # 通信を暗号化
   https-portal:
@@ -43,7 +44,7 @@ volumes:
       # Compose の外ですでに作成済みの volume を指定する場合は ture を設定する。
       # そうすると、 docker-compose up 時に Compose は volume を作成しようとしません。
       # かつ、指定した volume が存在しないとエラーを raise します。
-      #external: true
+      # external: true
 networks:
   # 他のcomposerと連携できるように、
   # ネットワーク名を明示的に設定する

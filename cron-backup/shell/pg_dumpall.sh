@@ -1,11 +1,13 @@
 #!/bin/bash
 
 SCRIPT_DIR=$(
-	cd $(dirname $0)
+	cd "$(dirname "$0")" || exit 1
 	pwd
 )
-source ${SCRIPT_DIR}/common.sh
-source ${SCRIPT_DIR}/pg_rman_env.sh
+# shellcheck source=cron-backup/shell/common.sh
+source "${SCRIPT_DIR}/common.sh"
+# shellcheck source=cron-backup/shell/pg_rman_env.sh
+source "${SCRIPT_DIR}/pg_rman_env.sh"
 
 # ローカルにバックアップファイルを残しておく日数
 PERIOD='+2'
@@ -22,7 +24,7 @@ EXT='.sql'
 #バックアップディレクトリ作成
 SAVEPATH=$SAVEPATH_BASE/$(date '+%Y%m')/
 log_info "pg_dumpall backup started. host=${DB_HOST} port=${DB_PORT} user=${DB_USER} savepath=${SAVEPATH}"
-mkdir -p $SAVEPATH
+mkdir -p "$SAVEPATH"
 
 # バックアップ実行
 BACKUP_FILE_NAME=$PREFIX$DATE$EXT
@@ -32,12 +34,13 @@ time nice -n 19 pg_dumpall -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" | nice -n 1
 
 # 保存期間が過ぎたファイルの削除
 log_info "Deleting old dump files. retention=${PERIOD} base=${SAVEPATH_BASE}"
-find $SAVEPATH_BASE -type f -daystart -mtime $PERIOD -exec rm {} \;
+find "$SAVEPATH_BASE" -type f -daystart -mtime "$PERIOD" -exec rm {} \;
 
 # 空になったディレクトリを消去
 log_info "Removing empty directories under ${SAVEPATH_BASE}"
-find $SAVEPATH_BASE -type d -empty -delete
+find "$SAVEPATH_BASE" -type d -empty -delete
 
 # S3同期を行う
 log_info "Starting optional S3 sync for dumpall"
-source ${SCRIPT_DIR}/syncToS3.sh dumpall false
+# shellcheck source=cron-backup/shell/syncToS3.sh
+source "${SCRIPT_DIR}/syncToS3.sh" dumpall false

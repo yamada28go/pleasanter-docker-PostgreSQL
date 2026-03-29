@@ -62,7 +62,7 @@ echo "[lint] hadolint"
 hadolint cron-backup/Dockerfile
 
 echo "[lint] shellcheck"
-shellcheck \
+shellcheck -x \
 	cron-backup/config/aws-cli/S3Config.sh \
 	cron-backup/shell/common.sh \
 	cron-backup/shell/db_maintenance.sh \
