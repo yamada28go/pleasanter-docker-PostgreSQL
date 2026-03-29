@@ -1,5 +1,3 @@
-version: "3.7"
-
 # 共通環境変数を定義
 x-var-db-data: &APP_DB_data "db-data:/var/lib/postgresql/data"
 x-var-db-arclog: &APP_DB_arclog "db-arclog:/var/lib/postgresql/arclog"
@@ -33,16 +31,18 @@ services:
   # wbsサイト本体      
   pleasanter-web:
     container_name: pleasanter-web
-    image: pleasanter-local-web:1.3.46.1
+    image: implem/pleasanter:${PLEASANTER_VERSION}
     depends_on:
       - postgres-db
+    ports:
+      - '50001:8080'
     environment:
       Implem.Pleasanter_Rds_PostgreSQL_SaConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_SaConnectionString}
       Implem.Pleasanter_Rds_PostgreSQL_OwnerConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_OwnerConnectionString}
       Implem.Pleasanter_Rds_PostgreSQL_UserConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_UserConnectionString}
-    ports:
-      # https-portalと被らないようにドメインを分ける
-      - "8081:80"
+    # ports:
+    #   # https-portalと被らないようにドメインを分ける
+    #   - "8081:80"
     logging:
       driver: "json-file"
       options:
@@ -82,7 +82,7 @@ services:
   # DB定義更新
   codedefiner:
       container_name: codedefiner
-      image: pleasanter-local-codedefiner:1.3.46.1
+      image: implem/pleasanter:codedefiner
       depends_on:
         - postgres-db
       environment:
@@ -98,6 +98,17 @@ services:
       #https://gotohayato.com/content/505/      
       profiles:
         - extra
+
+  # codedefiner:
+  #   container_name: codedefiner
+  #   image: implem/pleasanter:codedefiner
+  #   depends_on:
+  #     - postgres-db
+  #   environment:
+  #     Implem.Pleasanter_Rds_PostgreSQL_SaConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_SaConnectionString}
+  #     Implem.Pleasanter_Rds_PostgreSQL_OwnerConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_OwnerConnectionString}
+  #     Implem.Pleasanter_Rds_PostgreSQL_UserConnectionString: ${Implem_Pleasanter_Rds_PostgreSQL_UserConnectionString}
+
 volumes:
   db-data:
     driver: local
@@ -115,3 +126,4 @@ networks:
   # 他のcomposerと連携できるように、
   # ネットワーク名を明示的に設定する
   pleasanter-service-network:
+
