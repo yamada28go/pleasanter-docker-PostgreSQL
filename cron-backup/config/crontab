@@ -7,4 +7,4 @@
 # DBメンテナンスを行う
 45 22 * * * flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/db_maintenance.sh
 # Syslogデータの払い出しを行う
-00 22 * * * flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/syslogs_maintenance/syslogs_maintenance.sh
+#00 22 * * * flock --timeout=300 /tmp/db_backup.lock /var/backup_sh/syslogs_maintenance/syslogs_maintenance.sh
