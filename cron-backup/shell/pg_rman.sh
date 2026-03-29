@@ -31,11 +31,11 @@ case ${BACKUP_TYPE} in
   "INCREMENTAL")
     # 差分バックアップ
     echo "INCREMENTAL Backup"
-    time nice -n 19 pg_rman backup --backup-mode=incremental --compress-data --progress $HOST_CONFIG --dbname Implem.Pleasanter;;
+    time nice -n 19 pg_rman backup --backup-mode=incremental --compress-data --progress $HOST_CONFIG --dbname "$DB_NAME";;
   *)
     # 初期バックアップを起動
     echo "FULL Backup"
-    time nice -n 19 pg_rman backup --backup-mode=full --compress-data --progress $HOST_CONFIG --dbname Implem.Pleasanter;;
+    time nice -n 19 pg_rman backup --backup-mode=full --compress-data --progress $HOST_CONFIG --dbname "$DB_NAME";;
 esac
 
 #バリデーションチェック
@@ -49,4 +49,3 @@ pg_rman delete ${DELETE_DATA} 00:00:00
 # S3同期を行う
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
 source ${SCRIPT_DIR}/syncToS3.sh PITR true
-

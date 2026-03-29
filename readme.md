@@ -41,6 +41,11 @@ POSTGRES_PASSWORD=SetSaPWD
 POSTGRES_DB=postgres
 POSTGRES_HOST_AUTH_METHOD=scram-sha-256
 POSTGRES_INITDB_ARGS="--auth-host=scram-sha-256"
+ZIP_PASSWORD=change_me
+BACKUP_DB_HOST=postgres-db
+BACKUP_DB_PORT=5432
+BACKUP_DB_NAME=Implem.Pleasanter
+BACKUP_DB_USER=postgres
 PLEASANTER_VERSION=latest
 Implem_Pleasanter_Rds_PostgreSQL_SaConnectionString="Server=postgres-db;Database=postgres;UID=postgres;PWD=SetSaPWD"
 Implem_Pleasanter_Rds_PostgreSQL_OwnerConnectionString="Server=postgres-db;Database=#ServiceName#;UID=#ServiceName#_Owner;PWD=SetAdminsPWD"

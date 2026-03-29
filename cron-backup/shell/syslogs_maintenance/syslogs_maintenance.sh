@@ -1,5 +1,8 @@
 #!/bin/bash
 
+SCRIPT_DIR=$(cd $(dirname $0); pwd)
+source ${SCRIPT_DIR}/../pg_rman_env.sh
+
 # ローカルにバックアップファイルを残しておく日数
 PERIOD='+2'
 
@@ -16,8 +19,6 @@ EXT='.7z'
 TWO_DAYS_AGO=$(date -d "2 days ago" +"%Y-%m-%d")
 echo $TWO_DAYS_AGO
 
-SCRIPT_DIR=$(cd $(dirname $0); pwd)
-
 #バックアップディレクトリ作成
 SAVEPATH=$SAVEPATH_BASE/`date '+%Y%m'`/
 mkdir -p $SAVEPATH
@@ -32,7 +33,7 @@ BACKUP_FILE=$SAVEPATH$PREFIX$TODAY_DATE$EXT
 #
 # 出力先パス
 # /tmp/__old_syslog_records.7z
-psql -h postgres-db -p 5432 -d Implem.Pleasanter -U postgres -f ${SCRIPT_DIR}/syslogs_maintenance.sql -v target_datetime=$TWO_DAYS_AGO" 00:00:00" 
+psql -h "$DB_HOST" -p "$DB_PORT" -d "$DB_NAME" -U "$DB_USER" -f ${SCRIPT_DIR}/syslogs_maintenance.sql -v target_datetime=$TWO_DAYS_AGO" 00:00:00" 
 
 # 作成されたファイルを所定の場所に移動する
 mv /tmp/__old_syslog_records.7z $BACKUP_FILE

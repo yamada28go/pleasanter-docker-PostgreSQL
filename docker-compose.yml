@@ -83,6 +83,11 @@ services:
       - PGPASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_VERSION=${POSTGRES_VERSION:-18}
       - POSTGRES_VOLUMES_TARGET=${POSTGRES_VOLUMES_TARGET:-/var/lib/postgresql/data}
+      - ZIP_PASSWORD=${ZIP_PASSWORD:?ZIP_PASSWORD is required}
+      - BACKUP_DB_HOST=${BACKUP_DB_HOST:-postgres-db}
+      - BACKUP_DB_PORT=${BACKUP_DB_PORT:-5432}
+      - BACKUP_DB_NAME=${BACKUP_DB_NAME:-Implem.Pleasanter}
+      - BACKUP_DB_USER=${BACKUP_DB_USER:-postgres}
       # dbのバックアップデータをs3に同期する
       # - ENABLE_S3_BACKUP=1
     volumes:

@@ -14,5 +14,9 @@ export BACKUP_PATH=$SAVEPATH_BASE
 export PGDATA="${POSTGRES_VOLUMES_TARGET:-/var/lib/postgresql/data}"
 export ARCLOG_PATH=/var/lib/postgresql/arclog
 
-# ユーザー設定
-export HOST_CONFIG='--host=postgres-db --username postgres'
+# DB接続設定
+export DB_HOST="${BACKUP_DB_HOST:-postgres-db}"
+export DB_PORT="${BACKUP_DB_PORT:-5432}"
+export DB_NAME="${BACKUP_DB_NAME:-Implem.Pleasanter}"
+export DB_USER="${BACKUP_DB_USER:-postgres}"
+export HOST_CONFIG="--host=${DB_HOST} --port=${DB_PORT} --username ${DB_USER}"
