@@ -16,6 +16,7 @@ services:
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - PGDATA=${POSTGRES_VOLUMES_TARGET:-/var/lib/postgresql/data}
       - DATABASE_HOST=localhost
       - DB_EXTENSION=pg_trgm
     command:
@@ -80,6 +81,8 @@ services:
         max-file: "10"
     environment:
       - PGPASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_VERSION=${POSTGRES_VERSION:-18}
+      - POSTGRES_VOLUMES_TARGET=${POSTGRES_VOLUMES_TARGET:-/var/lib/postgresql/data}
       # dbのバックアップデータをs3に同期する
       # - ENABLE_S3_BACKUP=1
     volumes:
