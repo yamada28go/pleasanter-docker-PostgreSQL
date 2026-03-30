@@ -116,7 +116,7 @@ services:
       # S3で自動バックアップする場合
       # aws cliの設定を以下パスに行う。
       # 存在しない場合はバックアップは行われない
-      #- ./cron-backup/config/aws-cli:/root/.aws/
+      # - ./cron-backup/config/aws-cli:/root/.aws/
     networks:
       - pleasanter-service-network
 
@@ -143,7 +143,7 @@ volumes:
     # Compose の外ですでに作成済みの volume を指定する場合は ture を設定する。
     # そうすると、 docker-compose up 時に Compose は volume を作成しようとしません。
     # かつ、指定した volume が存在しないとエラーを raise します。
-    #external: true
+    # external: true
   db-arclog:
     driver: local
     # dbのバックアップ領域
