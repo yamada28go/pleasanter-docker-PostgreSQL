@@ -62,40 +62,13 @@ docker compose up -d
 
 - [構成と全体図](./doc/architecture.md)
 - [設定ファイル](./doc/configuration.md)
+- [開発環境](./doc/development.md)
 - [SSL で起動する](./doc/ssl.md)
 - [バックアップ / 復元手順](./doc/backup-restore.md)
 - [pg_dumpall 復元手順](./doc/pg-dumpall-restore.md)
 - [PITR 復元手順](./doc/pitr-restore.md)
 
 S3 同期の有効化条件や `syncToS3.sh` の動きも、[バックアップ / 復元手順](./doc/backup-restore.md) にまとめています。
-
-## 開発補助
-
-Node 系ツールをローカルに入れる:
-
-```bash
-npm install
-```
-
-それ以外の主なツールを入れる:
-
-```bash
-brew install hadolint shellcheck yamllint shfmt
-```
-
-Lint:
-
-```bash
-make lint
-```
-
-Format:
-
-```bash
-make format
-```
-
-ローカルの `node_modules/.bin` に入った `markdownlint-cli2` と `prettier` は、`make lint` / `make format` から優先的に使われます。
 
 ## 参考
 
