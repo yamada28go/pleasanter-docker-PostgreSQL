@@ -1,5 +1,14 @@
+DOCKER_COMPOSE ?= docker compose
+DEVTOOLS_RUN = $(DOCKER_COMPOSE) run --rm devtools
+
 lint:
-	./scripts/lint.sh
+	$(DEVTOOLS_RUN) ./scripts/lint.sh
 
 format:
-	./scripts/format.sh
+	$(DEVTOOLS_RUN) ./scripts/format.sh
+
+devtools-build:
+	$(DOCKER_COMPOSE) build devtools
+
+devtools-shell:
+	$(DEVTOOLS_RUN) bash

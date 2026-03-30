@@ -1,15 +1,9 @@
 ## 開発環境
 
-Node 系ツールをローカルに入れる:
+Lint / Format 用の作業コンテナをビルド:
 
 ```bash
-npm install
-```
-
-それ以外の主なツールを入れる:
-
-```bash
-brew install hadolint shellcheck yamllint shfmt
+make devtools-build
 ```
 
 Lint:
@@ -24,4 +18,12 @@ Format:
 make format
 ```
 
-ローカルの `node_modules/.bin` に入った `markdownlint-cli2` と `prettier` は、`make lint` / `make format` から優先的に使われます。
+必要なら作業コンテナにシェルで入る:
+
+```bash
+make devtools-shell
+```
+
+`hadolint`、`shellcheck`、`yamllint`、`shfmt`、`markdownlint-cli2`、`prettier` は `devtools/Dockerfile` でまとめて入ります。ホスト側にこれらを直接インストールする必要はありません。
+
+`make lint` の中では `docker compose config` も実行するため、作業コンテナには Docker ソケットをマウントしています。

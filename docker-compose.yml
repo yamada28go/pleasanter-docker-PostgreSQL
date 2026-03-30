@@ -4,6 +4,17 @@ x-var-db-data: &APP_DB_data "db-data:/var/lib/postgresql/data"
 x-var-db-arclog: &APP_DB_arclog "db-arclog:${POSTGRES_ARCLOG_PATH:-/var/lib/postgresql/arclog}"
 
 services:
+  devtools:
+    build:
+      context: .
+      dockerfile: devtools/Dockerfile
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    profiles:
+      - extra
+
   # DB本体
   postgres-db:
     image: postgres:${POSTGRES_VERSION:-18}-alpine
