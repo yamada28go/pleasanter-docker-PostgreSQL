@@ -61,6 +61,7 @@ shfmt -w \
 	cron-backup/shell/pg_rman_env.sh \
 	cron-backup/shell/sync_to_s3.sh \
 	cron-backup/shell/syslogs_maintenance/syslogs_maintenance.sh \
+	postgres-db/docker-entrypoint-wrapper.sh \
 	scripts/lint.sh \
 	scripts/format.sh
 

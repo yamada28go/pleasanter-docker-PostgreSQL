@@ -58,5 +58,6 @@
 ## 運用メモ
 
 - `postgres-db` は healthcheck を持ち、`pleasanter-web` / `codedefiner` / `cron-backup` は DB ready を待って起動します
+- `postgres-db` は起動前に WAL アーカイブ先ディレクトリを初期化し、アーカイブ書き込み権限を整えます
 - DB ポート公開は `127.0.0.1:5432:5432` に限定しています
 - `container_name` は固定していないため、同じホストで別 project 名の Compose を並行起動しやすい構成です
