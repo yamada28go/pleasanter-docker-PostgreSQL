@@ -15,6 +15,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare env files
+        run: cp .env.secrets.example .env.secrets
+
       - name: Check formatting
         run: |
           make format
@@ -27,6 +30,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Prepare env files
+        run: cp .env.secrets.example .env.secrets
 
       - name: Run linters
         run: make lint
