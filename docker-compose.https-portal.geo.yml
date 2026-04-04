@@ -6,12 +6,9 @@ services:
   https-portal:
     environment:
       CUSTOM_NGINX_GLOBAL_HTTP_CONFIG_BLOCK: |
-        geo $$jp_allowed {
-          default 0;
-          include /var/lib/https-portal/jp.nginx-geo.txt;
-        }
+        include /var/lib/https-portal/jp.nginx-geo.txt;
       CUSTOM_NGINX_SERVER_CONFIG_BLOCK: |
-        if ($$jp_allowed = 0) {
+        if ($$ipv4_jp = 0) {
           return 403;
         }
     volumes:

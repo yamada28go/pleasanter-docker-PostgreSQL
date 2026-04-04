@@ -39,24 +39,21 @@ volumes:
   - ./images/steveltn/https-portal/jp.nginx-geo.txt:/var/lib/https-portal/jp.nginx-geo.txt:ro
 ```
 
-`jp.nginx-geo.txt` は `geo` ディレクティブ用の include ファイルです。この構成では `https://ipv4.fetus.jp/jp.nginx-geo.txt` を配置し、日本の IPv4 レンジを `$jp_allowed` へ読み込む前提にしています。
+`jp.nginx-geo.txt` は `geo $ipv4_jp { ... }` まで含んだ complete な Nginx 設定片です。この構成では `https://ipv4.fetus.jp/jp.nginx-geo.txt` をそのまま配置し、日本の IPv4 レンジを `$ipv4_jp` として読み込む前提にしています。
 
 `docker-compose.https-portal.geo.yml` では、概ね次のような設定を入れています。
 
 ```yaml
 environment:
   CUSTOM_NGINX_GLOBAL_HTTP_CONFIG_BLOCK: |
-    geo $$jp_allowed {
-      default 0;
-      include /var/lib/https-portal/jp.nginx-geo.txt;
-    }
+    include /var/lib/https-portal/jp.nginx-geo.txt;
   CUSTOM_NGINX_SERVER_CONFIG_BLOCK: |
-    if ($$jp_allowed = 0) {
+    if ($$ipv4_jp = 0) {
       return 403;
     }
 ```
 
-これにより HTTPS 側では `$jp_allowed = 1` のアクセスだけを通し、それ以外は 403 にします。Compose 上では `$` を環境変数展開から守るため、`$$` で書く必要があります。
+これにより HTTPS 側では `$ipv4_jp = 1` のアクセスだけを通し、それ以外は 403 にします。Compose 上では `$` を環境変数展開から守るため、`$$` で書く必要があります。
 
 `CUSTOM_NGINX_SERVER_PLAIN_CONFIG_BLOCK` ではなく `CUSTOM_NGINX_SERVER_CONFIG_BLOCK` だけを使っているのは、Let's Encrypt の HTTP-01 検証を壊さないためです。HTTP 側まで同じ制限を掛けると、証明書更新時の `/.well-known/acme-challenge/` が失敗する可能性があります。
 
