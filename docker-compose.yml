@@ -1,11 +1,25 @@
+---
 # 共通環境変数を定義
 x-var-db-data: &APP_DB_data "db-data:/var/lib/postgresql/data"
 x-var-db-arclog: &APP_DB_arclog "db-arclog:${POSTGRES_ARCLOG_PATH:-/var/lib/postgresql/arclog}"
 
 services:
-  #DB本体
+  devtools:
+    build:
+      context: .
+      dockerfile: devtools/Dockerfile
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    profiles:
+      - extra
+
+  # DB本体
   postgres-db:
     image: postgres:${POSTGRES_VERSION:-18}-alpine
+    entrypoint:
+      - /usr/local/bin/postgres-entrypoint-wrapper.sh
     env_file:
       - .env
       - .env.secrets
@@ -33,6 +47,7 @@ services:
       - -c
       - "archive_command=${POSTGRES_ARCHIVE_COMMAND:-cp %p ${POSTGRES_ARCLOG_PATH:-/var/lib/postgresql/arclog}/%f}"
     volumes:
+      - ./postgres-db/docker-entrypoint-wrapper.sh:/usr/local/bin/postgres-entrypoint-wrapper.sh:ro
       - *APP_DB_data
       - *APP_DB_arclog
     logging:
@@ -50,7 +65,7 @@ services:
       start_period: 20s
     networks:
       - pleasanter-service-network
-  # webサイト本体      
+  # webサイト本体
   pleasanter-web:
     image: implem/pleasanter:${PLEASANTER_VERSION}
     restart: unless-stopped
@@ -60,7 +75,7 @@ services:
       postgres-db:
         condition: service_healthy
     ports:
-      - '127.0.0.1:50001:8080'
+      - "127.0.0.1:50001:8080"
     # ports:
     #   # https-portalと被らないようにドメインを分ける
     #   - "8081:80"
@@ -73,7 +88,7 @@ services:
     #   - ./pleasanter/parameters:/var/opt/parameters
     networks:
       - pleasanter-service-network
-  
+
   # 定期バックアップ用
   cron-backup:
     build:
@@ -101,37 +116,33 @@ services:
       # 自動バックアップされた結果は「/var/db_backup」に格納される。
       # コンテナの外からアクセスする場合は、このパスを外から見える所に配置しておく
       - db-backup:/var/db_backup
-      # S3で自動バックアップする場合
-      # aws cliの設定を以下パスに行う。
-      # 存在しない場合はバックアップは行われない
-      #- ./cron-backup/config/aws-cli:/root/.aws/
     networks:
       - pleasanter-service-network
 
   # DB定義更新
   codedefiner:
-      image: implem/pleasanter:codedefiner
-      env_file:
-        - .env.secrets
-      depends_on:
-        postgres-db:
-          condition: service_healthy
-      networks:
-        - pleasanter-service-network
-      # このサービスをデフォルトで起動させないようにprofilesを指定する
-      # 
-      # [参考]
-      # docker-compose up で一部のサービスを除外する方法
-      #https://gotohayato.com/content/505/      
-      profiles:
-        - extra
+    image: implem/pleasanter:codedefiner
+    env_file:
+      - .env.secrets
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - pleasanter-service-network
+    # このサービスをデフォルトで起動させないように profiles を指定する
+    #
+    # [参考]
+    # docker-compose up で一部のサービスを除外する方法
+    # https://gotohayato.com/content/505/
+    profiles:
+      - extra
 volumes:
   db-data:
     driver: local
     # Compose の外ですでに作成済みの volume を指定する場合は ture を設定する。
     # そうすると、 docker-compose up 時に Compose は volume を作成しようとしません。
     # かつ、指定した volume が存在しないとエラーを raise します。
-    #external: true
+    # external: true
   db-arclog:
     driver: local
     # dbのバックアップ領域

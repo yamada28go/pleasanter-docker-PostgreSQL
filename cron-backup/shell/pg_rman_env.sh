@@ -20,4 +20,9 @@ export DB_PORT="${BACKUP_DB_PORT:-5432}"
 export DB_NAME="${POSTGRES_DB:-postgres}"
 export DB_USER="${BACKUP_DB_USER:-postgres}"
 export PGPASSWORD="${PGPASSWORD:-${POSTGRES_PASSWORD:-}}"
-export HOST_CONFIG="--host=${DB_HOST} --port=${DB_PORT} --username ${DB_USER}"
+# shellcheck disable=SC2034
+HOST_CONFIG=(
+	"--host=${DB_HOST}"
+	"--port=${DB_PORT}"
+	"--username=${DB_USER}"
+)

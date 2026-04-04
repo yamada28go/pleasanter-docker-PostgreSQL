@@ -54,20 +54,21 @@ docker compose up -d
 
 初期ログイン情報:
 
-| ユーザ | パスワード |
-| --- | --- |
+| ユーザ          | パスワード   |
+| --------------- | ------------ |
 | `Administrator` | `pleasanter` |
 
 ## 詳細ドキュメント
 
 - [構成と全体図](./doc/architecture.md)
 - [設定ファイル](./doc/configuration.md)
+- [開発環境](./doc/development.md)
 - [SSL で起動する](./doc/ssl.md)
 - [バックアップ / 復元手順](./doc/backup-restore.md)
 - [pg_dumpall 復元手順](./doc/pg-dumpall-restore.md)
 - [PITR 復元手順](./doc/pitr-restore.md)
 
-S3 同期の有効化条件や `syncToS3.sh` の動きも、[バックアップ / 復元手順](./doc/backup-restore.md) にまとめています。
+S3 同期の有効化条件や `sync_to_s3.sh` の動きも、[バックアップ / 復元手順](./doc/backup-restore.md) にまとめています。
 
 ## 参考
 

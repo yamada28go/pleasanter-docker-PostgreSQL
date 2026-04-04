@@ -1,10 +1,11 @@
+---
 version: "3.7"
 
-#HTTP-Potal用の設定
+# HTTP-Potal用の設定
 services:
   # 通信を暗号化
   https-portal:
-    image: steveltn/https-portal:1    
+    image: steveltn/https-portal:1
     ports:
       - "80:80"
       - "443:443"
@@ -34,7 +35,7 @@ services:
     volumes:
       - ssl_data:/var/lib/https-portal
     networks:
-      - pleasanter-service-network      
+      - pleasanter-service-network
 
 volumes:
   ssl_data:
@@ -43,9 +44,8 @@ volumes:
       # Compose の外ですでに作成済みの volume を指定する場合は ture を設定する。
       # そうすると、 docker-compose up 時に Compose は volume を作成しようとしません。
       # かつ、指定した volume が存在しないとエラーを raise します。
-      #external: true
+      # external: true
 networks:
   # 他のcomposerと連携できるように、
   # ネットワーク名を明示的に設定する
   pleasanter-service-network:
-
