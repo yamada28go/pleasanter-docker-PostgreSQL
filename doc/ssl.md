@@ -26,33 +26,40 @@ environment:
   - コメントアウトのままだと自己署名証明書相当の動作
   - `production` を指定すると Let's Encrypt を使う
 
-## 2. HTTPS 側で IP 制限を使う場合
+## 2. HTTPS 側で国単位のアクセス制限を使う場合
 
-`https-portal` では、`ACCESS_RESTRICTION` を使って接続元 IP を制限できます。
+`https-portal` では `CUSTOM_NGINX_GLOBAL_HTTP_CONFIG_BLOCK` と `CUSTOM_NGINX_SERVER_CONFIG_BLOCK` を使って、Nginx の `geo` 変数によるアクセス制限を追加できます。
 
 このリポジトリの [`docker-compose.https-portal.yml`](../docker-compose.https-portal.yml) では、次の volume を使って動的に環境変数を上書きできるようにしています。
 
 ```yaml
 volumes:
+  - ./images/steveltn/https-portal/jp.nginx-geo.txt:/var/lib/https-portal/jp.nginx-geo.txt:ro
   - ./images/steveltn/https-portal/dynamic-env:/var/lib/https-portal/dynamic-env
 ```
 
-`images/steveltn/https-portal/dynamic-env` は `https-portal` の動的環境変数上書きディレクトリです。ディレクトリ内のファイル名が環境変数名、ファイル内容がその値として扱われ、更新後およそ 1 秒で設定が反映されます。
+`jp.nginx-geo.txt` は `geo` ディレクティブ用の include ファイルです。この構成では `https://ipv4.fetus.jp/jp.nginx-geo.txt` を配置し、日本の IPv4 レンジを `$jp_allowed` へ読み込む前提にしています。
 
-IP 制限だけを切り替えたい場合は、ホスト側で `images/steveltn/https-portal/dynamic-env/ACCESS_RESTRICTION` を作成します。
+`docker-compose.https-portal.yml` では、概ね次のような設定を入れています。
 
-例:
-
-```bash
-mkdir -p images/steveltn/https-portal/dynamic-env
-printf '203.0.113.10 198.51.100.0/24\n' > images/steveltn/https-portal/dynamic-env/ACCESS_RESTRICTION
+```yaml
+environment:
+  CUSTOM_NGINX_GLOBAL_HTTP_CONFIG_BLOCK: |
+    geo $$jp_allowed {
+      default 0;
+      include /var/lib/https-portal/jp.nginx-geo.txt;
+    }
+  CUSTOM_NGINX_SERVER_CONFIG_BLOCK: |
+    if ($$jp_allowed = 0) {
+      return 403;
+    }
 ```
 
-この例では、`203.0.113.10` と `198.51.100.0/24` だけを許可します。値の書式は Nginx の `allow` 相当で、個別 IP と CIDR を空白区切りで並べられます。
+これにより HTTPS 側では `$jp_allowed = 1` のアクセスだけを通し、それ以外は 403 にします。Compose 上では `$` を環境変数展開から守るため、`$$` で書く必要があります。
 
-設定を外す場合は、`images/steveltn/https-portal/dynamic-env/ACCESS_RESTRICTION` を空にするか削除します。
+`CUSTOM_NGINX_SERVER_PLAIN_CONFIG_BLOCK` ではなく `CUSTOM_NGINX_SERVER_CONFIG_BLOCK` だけを使っているのは、Let's Encrypt の HTTP-01 検証を壊さないためです。HTTP 側まで同じ制限を掛けると、証明書更新時の `/.well-known/acme-challenge/` が失敗する可能性があります。
 
-日本国内向けの許可 IP をまとめて作る場合は、[`scripts/make_ip_filter.sh`](../scripts/make_ip_filter.sh) を使えます。
+日本向けの `jp.nginx-geo.txt` を更新する場合は、[`scripts/make_ip_filter.sh`](../scripts/make_ip_filter.sh) を使えます。
 
 ```bash
 ./scripts/make_ip_filter.sh
@@ -60,26 +67,25 @@ printf '203.0.113.10 198.51.100.0/24\n' > images/steveltn/https-portal/dynamic-e
 
 このスクリプトは次を行います。
 
-- `https://ipv4.fetus.jp/jp.txt` を取得する
-- コメント行と空行を除去する
-- `https-portal` の `ACCESS_RESTRICTION` 向けに空白区切り 1 行へ正規化する
-- `images/steveltn/https-portal/dynamic-env/ACCESS_RESTRICTION` に出力する
+- `https://ipv4.fetus.jp/jp.nginx-geo.txt` を取得する
+- `images/steveltn/https-portal/jp.nginx-geo.txt` に出力する
 
-必要なら出力先ディレクトリとファイル名は引数で上書きできます。
+必要なら出力先ディレクトリ、ファイル名、取得元 URL は引数で上書きできます。
 
 ```bash
-./scripts/make_ip_filter.sh /path/to/output ACCESS_RESTRICTION
+./scripts/make_ip_filter.sh /path/to/output jp.nginx-geo.txt https://ipv4.fetus.jp/jp.nginx-geo.txt
 ```
 
 利用上の注意:
 
 - `ipv4.fetus.jp` の案内では、自動アクセス自体は想定内ですが、データベース更新は原則 1 日 1 回です。短い間隔で cron 実行しても意味が薄いので、実行頻度は抑えてください
 - 毎時 0 分頃はダウンロードが集中しやすいと案内されています。定期取得するなら、その時間帯を避けて分散した方が安全です
-- 取得データが空だったり、想定より欠けていた過去事例があると案内されています。更新後は `ACCESS_RESTRICTION` が空になっていないか、形式が崩れていないかを確認してください
+- 取得データが空だったり、想定より欠けていた過去事例があると案内されています。更新後は `jp.nginx-geo.txt` が空になっていないかを確認してください
 - 公式案内では、自動アクセス時は可能な限り User-Agent に連絡先を入れてほしいとされています。高頻度運用や継続運用をするなら、この点も検討してください
 
 補足:
 
+- `jp.nginx-geo.txt` は `dynamic-env` ではないため、ファイル更新だけでは `https-portal` が自動再読込しない可能性があります。確実に反映するなら `docker compose restart https-portal` を実行してください
 - 公式 README では、Docker Desktop for Mac / Windows では送信元 IP がプロキシ側 IP に見えるため、期待通り動かない場合があると案内されています
 - STG / 本番のような Linux ホスト上の Docker で使う前提なら、この方式が扱いやすいです
 
@@ -100,4 +106,4 @@ docker compose -f docker-compose.yml -f docker-compose.https-portal.yml up -d
 - Let's Encrypt のドメイン認証のため、80 番ポートも必要です
 - 証明書再取得が必要な場合は `FORCE_RENEW: "true"` を一時的に使います
 - 大きなファイルを扱う場合は `CLIENT_MAX_BODY_SIZE` を調整します
-- `images/steveltn/https-portal/dynamic-env/ACCESS_RESTRICTION` を変更した場合は、通常はコンテナ再起動なしで反映されます
+- `dynamic-env` 配下の環境変数ファイル変更は通常 1 秒程度で反映されます

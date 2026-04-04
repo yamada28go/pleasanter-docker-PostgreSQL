@@ -6,13 +6,12 @@
 
 set -euo pipefail
 
-URL="https://ipv4.fetus.jp/jp.txt"
-OUTPUT_DIR="${1:-images/steveltn/https-portal/dynamic-env}"
-OUTPUT_FILE_NAME="${2:-ACCESS_RESTRICTION}"
+URL="${3:-https://ipv4.fetus.jp/jp.nginx-geo.txt}"
+OUTPUT_DIR="${1:-images/steveltn/https-portal}"
+OUTPUT_FILE_NAME="${2:-jp.nginx-geo.txt}"
 OUTPUT_FILE="${OUTPUT_DIR}/${OUTPUT_FILE_NAME}"
 TEMP_DIR="$(mktemp -d /tmp/make_ip_filter.XXXXXX)"
 TEMP_FILE="${TEMP_DIR}/source.txt"
-FILTERED_FILE="${TEMP_DIR}/${OUTPUT_FILE_NAME}"
 
 cleanup() {
 	rm -rf "${TEMP_DIR}"
@@ -24,20 +23,11 @@ mkdir -p "${OUTPUT_DIR}"
 
 curl -fsSL -o "${TEMP_FILE}" "${URL}"
 
-# HTTPS-PORTAL の ACCESS_RESTRICTION は空白区切りの 1 行を想定しているため、
-# コメントと空行を除去したうえで 1 行へ正規化する。
-awk '
-	!/^[[:space:]]*#/ && NF {
-		if (count++) {
-			printf " "
-		}
-		printf "%s", $1
-	}
-	END {
-		printf "\n"
-	}
-' "${TEMP_FILE}" >"${FILTERED_FILE}"
+if [[ ! -s "${TEMP_FILE}" ]]; then
+	echo "Downloaded file is empty: ${URL}" >&2
+	exit 1
+fi
 
-mv "${FILTERED_FILE}" "${OUTPUT_FILE}"
+mv "${TEMP_FILE}" "${OUTPUT_FILE}"
 
-echo "IP filter written to ${OUTPUT_FILE}"
+echo "Geo filter written to ${OUTPUT_FILE}"
