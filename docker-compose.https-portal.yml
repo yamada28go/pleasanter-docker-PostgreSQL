@@ -18,17 +18,8 @@ services:
       # STAGE: 'production'
       # 証明書を強制的に再取得する
       # FORCE_RENEW: 'true'
-      # 日本向けIPレンジだけを許可する。
-      # Let's Encrypt の HTTP-01 検証を壊さないよう、SSL server block 側だけで制限する。
-      CUSTOM_NGINX_GLOBAL_HTTP_CONFIG_BLOCK: |
-        geo $$jp_allowed {
-          default 0;
-          include /var/lib/https-portal/jp.nginx-geo.txt;
-        }
-      CUSTOM_NGINX_SERVER_CONFIG_BLOCK: |
-        if ($$jp_allowed = 0) {
-          return 403;
-        }
+      # 日本向けIPレンジ制限を有効にする場合は
+      # docker-compose.https-portal.geo.yml を追加して起動する。
       # 容量設定
       #  CLIENT_MAX_BODY_SIZE: 0  # これだと無制限
       CLIENT_MAX_BODY_SIZE: 500M
@@ -45,8 +36,6 @@ services:
         max-file: "10"
     volumes:
       - ssl_data:/var/lib/https-portal
-      # 日本向けIPレンジ定義
-      - ./images/steveltn/https-portal/jp.nginx-geo.txt:/var/lib/https-portal/jp.nginx-geo.txt:ro
       # 環境変数の動的上書き用
       - ./images/steveltn/https-portal/dynamic-env:/var/lib/https-portal/dynamic-env
     networks:

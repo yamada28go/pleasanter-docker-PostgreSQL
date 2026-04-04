@@ -30,17 +30,18 @@ environment:
 
 `https-portal` では `CUSTOM_NGINX_GLOBAL_HTTP_CONFIG_BLOCK` と `CUSTOM_NGINX_SERVER_CONFIG_BLOCK` を使って、Nginx の `geo` 変数によるアクセス制限を追加できます。
 
-このリポジトリの [`docker-compose.https-portal.yml`](../docker-compose.https-portal.yml) では、次の volume を使って動的に環境変数を上書きできるようにしています。
+このリポジトリでは、通常の HTTPS 設定は [`docker-compose.https-portal.yml`](../docker-compose.https-portal.yml)、日本向け IP 制限の追加設定は [`docker-compose.https-portal.geo.yml`](../docker-compose.https-portal.geo.yml) に分けています。
+
+`docker-compose.https-portal.geo.yml` では、次の volume を追加します。
 
 ```yaml
 volumes:
   - ./images/steveltn/https-portal/jp.nginx-geo.txt:/var/lib/https-portal/jp.nginx-geo.txt:ro
-  - ./images/steveltn/https-portal/dynamic-env:/var/lib/https-portal/dynamic-env
 ```
 
 `jp.nginx-geo.txt` は `geo` ディレクティブ用の include ファイルです。この構成では `https://ipv4.fetus.jp/jp.nginx-geo.txt` を配置し、日本の IPv4 レンジを `$jp_allowed` へ読み込む前提にしています。
 
-`docker-compose.https-portal.yml` では、概ね次のような設定を入れています。
+`docker-compose.https-portal.geo.yml` では、概ね次のような設定を入れています。
 
 ```yaml
 environment:
@@ -91,8 +92,16 @@ environment:
 
 ## 3. HTTPS 用サービスを含めて起動
 
+通常の HTTPS 起動:
+
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.https-portal.yml up -d
+```
+
+日本向け IP 制限も有効にする場合:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.https-portal.yml -f docker-compose.https-portal.geo.yml up -d
 ```
 
 ## 4. アクセス確認
