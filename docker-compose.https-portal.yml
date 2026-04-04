@@ -13,7 +13,7 @@ services:
       - pleasanter-web
     restart: always
     environment:
-      DOMAINS: "wordpress.example.com -> http://pleasanter-web"
+      DOMAINS: "wordpress.example.com -> http://pleasanter-web:8080"
       # 本番モードへ切り替え
       # STAGE: 'production'
       # 証明書を強制的に再取得する
