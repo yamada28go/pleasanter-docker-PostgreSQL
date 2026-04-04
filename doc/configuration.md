@@ -85,6 +85,24 @@ POSTGRES_PASSWORD=change_me
 # pg_dumpall の 7z 暗号化に使うパスワード
 ZIP_PASSWORD=change_me
 
+# S3 同期を有効にする場合は 1 を設定
+ENABLE_S3_BACKUP=
+
+# S3 同期に使う AWS アクセスキー
+AWS_ACCESS_KEY_ID=
+
+# S3 同期に使う AWS シークレットキー
+AWS_SECRET_ACCESS_KEY=
+
+# S3 同期に使う AWS リージョン
+AWS_DEFAULT_REGION=ap-northeast-1
+
+# S3 同期先バケット名
+S3_TARGET_BUCKET_NAME=
+
+# S3 同期先ディレクトリ名
+S3_TARGET_DIRECTORY_NAME=DB_Backup
+
 # CodeDefiner / Pleasanter が PostgreSQL 管理者で接続するための接続文字列
 Implem.Pleasanter_Rds_PostgreSQL_SaConnectionString=Server=postgres-db;Database=postgres;UID=postgres;PWD=change_me
 

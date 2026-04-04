@@ -15,6 +15,29 @@ export PATH="$PATH:/usr/local/bin/aws"
 # バックアップ先ディレクトリ
 SAVEPATH_BASE='/var/db_backup'
 
+is_sourced() {
+	[[ "${BASH_SOURCE[0]}" != "$0" ]]
+}
+
+finish_sync_script() {
+	local exit_code="$1"
+
+	if is_sourced; then
+		return "${exit_code}"
+	fi
+
+	exit "${exit_code}"
+}
+
+require_env() {
+	local var_name="$1"
+
+	if [ -z "${!var_name:-}" ]; then
+		log_error "Required environment variable is not set: ${var_name}"
+		return 1
+	fi
+}
+
 # --- 処理用関数
 
 # S3 同期用関数
@@ -44,7 +67,7 @@ do_s3_sync() {
 
 if [ -z "${ENABLE_S3_BACKUP:-}" ]; then
 	log_warn "ENABLE_S3_BACKUP is not set. skip S3 sync"
-	exit 1
+	finish_sync_script 0
 fi
 
 log_info "S3 backup flow started"
@@ -55,12 +78,24 @@ log_info "S3 backup flow started"
 exec 10>"/tmp/$(basename "$0" .sh).lock"
 if ! flock -n 10; then
 	log_warn "Another S3 sync is already running. skip"
-	exit 1
+	finish_sync_script 0
 fi
 
-# import Setting Files
-# shellcheck source=/dev/null
-source /root/.aws/S3Config.sh
+if ! command -v aws >/dev/null 2>&1; then
+	log_error "aws command not found"
+	finish_sync_script 1
+fi
+
+for required_var in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY S3_TARGET_BUCKET_NAME S3_TARGET_DIRECTORY_NAME; do
+	if ! require_env "${required_var}"; then
+		finish_sync_script 1
+	fi
+done
+
+if [ -z "${AWS_DEFAULT_REGION:-${AWS_REGION:-}}" ]; then
+	log_error "Required environment variable is not set: AWS_DEFAULT_REGION or AWS_REGION"
+	finish_sync_script 1
+fi
 
 # 同期処理を開始
 log_info "Invoking S3 sync. category=$1 delete_mode=$2"

@@ -42,5 +42,5 @@ find "$SAVEPATH_BASE" -type d -empty -delete
 
 # S3同期を行う
 log_info "Starting optional S3 sync for dumpall"
-# shellcheck source=cron-backup/shell/syncToS3.sh
-source "${SCRIPT_DIR}/syncToS3.sh" dumpall false
+# shellcheck source=cron-backup/shell/sync_to_s3.sh
+source "${SCRIPT_DIR}/sync_to_s3.sh" dumpall false

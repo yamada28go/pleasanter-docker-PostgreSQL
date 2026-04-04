@@ -59,7 +59,7 @@ shfmt -w \
 	cron-backup/shell/pg_dumpall.sh \
 	cron-backup/shell/pg_rman.sh \
 	cron-backup/shell/pg_rman_env.sh \
-	cron-backup/shell/syncToS3.sh \
+	cron-backup/shell/sync_to_s3.sh \
 	cron-backup/shell/syslogs_maintenance/syslogs_maintenance.sh \
 	scripts/lint.sh \
 	scripts/format.sh

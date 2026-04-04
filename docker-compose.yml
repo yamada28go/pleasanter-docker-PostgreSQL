@@ -113,10 +113,6 @@ services:
       # 自動バックアップされた結果は「/var/db_backup」に格納される。
       # コンテナの外からアクセスする場合は、このパスを外から見える所に配置しておく
       - db-backup:/var/db_backup
-      # S3で自動バックアップする場合
-      # aws cliの設定を以下パスに行う。
-      # 存在しない場合はバックアップは行われない
-      # - ./cron-backup/config/aws-cli:/root/.aws/
     networks:
       - pleasanter-service-network
 

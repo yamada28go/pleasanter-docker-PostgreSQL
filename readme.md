@@ -68,7 +68,7 @@ docker compose up -d
 - [pg_dumpall 復元手順](./doc/pg-dumpall-restore.md)
 - [PITR 復元手順](./doc/pitr-restore.md)
 
-S3 同期の有効化条件や `syncToS3.sh` の動きも、[バックアップ / 復元手順](./doc/backup-restore.md) にまとめています。
+S3 同期の有効化条件や `sync_to_s3.sh` の動きも、[バックアップ / 復元手順](./doc/backup-restore.md) にまとめています。
 
 ## 参考
 

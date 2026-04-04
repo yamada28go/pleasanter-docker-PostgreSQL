@@ -58,4 +58,4 @@ pg_rman delete "${DELETE_DATA}" 00:00:00
 
 # # S3同期を行う
 # log_info "Starting optional S3 sync for PITR backups"
-# source "${SCRIPT_DIR}/syncToS3.sh" PITR true
+# source "${SCRIPT_DIR}/sync_to_s3.sh" PITR true
