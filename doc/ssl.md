@@ -52,6 +52,32 @@ printf '203.0.113.10 198.51.100.0/24\n' > images/steveltn/https-portal/dynamic-e
 
 設定を外す場合は、`images/steveltn/https-portal/dynamic-env/ACCESS_RESTRICTION` を空にするか削除します。
 
+日本国内向けの許可 IP をまとめて作る場合は、[`scripts/make_ip_filter.sh`](../scripts/make_ip_filter.sh) を使えます。
+
+```bash
+./scripts/make_ip_filter.sh
+```
+
+このスクリプトは次を行います。
+
+- `https://ipv4.fetus.jp/jp.txt` を取得する
+- コメント行と空行を除去する
+- `https-portal` の `ACCESS_RESTRICTION` 向けに空白区切り 1 行へ正規化する
+- `images/steveltn/https-portal/dynamic-env/ACCESS_RESTRICTION` に出力する
+
+必要なら出力先ディレクトリとファイル名は引数で上書きできます。
+
+```bash
+./scripts/make_ip_filter.sh /path/to/output ACCESS_RESTRICTION
+```
+
+利用上の注意:
+
+- `ipv4.fetus.jp` の案内では、自動アクセス自体は想定内ですが、データベース更新は原則 1 日 1 回です。短い間隔で cron 実行しても意味が薄いので、実行頻度は抑えてください
+- 毎時 0 分頃はダウンロードが集中しやすいと案内されています。定期取得するなら、その時間帯を避けて分散した方が安全です
+- 取得データが空だったり、想定より欠けていた過去事例があると案内されています。更新後は `ACCESS_RESTRICTION` が空になっていないか、形式が崩れていないかを確認してください
+- 公式案内では、自動アクセス時は可能な限り User-Agent に連絡先を入れてほしいとされています。高頻度運用や継続運用をするなら、この点も検討してください
+
 補足:
 
 - 公式 README では、Docker Desktop for Mac / Windows では送信元 IP がプロキシ側 IP に見えるため、期待通り動かない場合があると案内されています
