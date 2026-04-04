@@ -35,7 +35,7 @@ services:
     volumes:
       - ssl_data:/var/lib/https-portal
       # IPアドレス制限用
-      - ./dynamic-env:/var/lib/https-portal/dynamic-env
+      - ./steveltn/https-portal/dynamic-env:/var/lib/https-portal/dynamic-env
     networks:
       - pleasanter-service-network
 
