@@ -53,14 +53,14 @@ require_command shfmt
 
 echo "[format] shfmt"
 shfmt -w \
-	cron-backup/shell/common.sh \
-	cron-backup/shell/db_maintenance.sh \
-	cron-backup/shell/pg_dumpall.sh \
-	cron-backup/shell/pg_rman.sh \
-	cron-backup/shell/pg_rman_env.sh \
-	cron-backup/shell/sync_to_s3.sh \
-	cron-backup/shell/syslogs_maintenance/syslogs_maintenance.sh \
-	postgres-db/docker-entrypoint-wrapper.sh \
+	images/cron-backup/shell/common.sh \
+	images/cron-backup/shell/db_maintenance.sh \
+	images/cron-backup/shell/pg_dumpall.sh \
+	images/cron-backup/shell/pg_rman.sh \
+	images/cron-backup/shell/pg_rman_env.sh \
+	images/cron-backup/shell/sync_to_s3.sh \
+	images/cron-backup/shell/syslogs_maintenance/syslogs_maintenance.sh \
+	images/postgres-db/docker-entrypoint-wrapper.sh \
 	scripts/lint.sh \
 	scripts/format.sh
 

@@ -7,7 +7,7 @@ SCRIPT_DIR=$(
 	cd "$(dirname "$0")" || exit 1
 	pwd
 )
-# shellcheck source=cron-backup/shell/common.sh
+# shellcheck source=images/cron-backup/shell/common.sh
 source "${SCRIPT_DIR}/common.sh"
 
 export PATH="$PATH:/usr/local/bin/aws"
