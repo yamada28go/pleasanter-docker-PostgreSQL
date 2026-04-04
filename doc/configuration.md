@@ -9,6 +9,12 @@
 
 ## `.env`
 
+`.env.example` をコピーして作成します。
+
+```bash
+cp .env.example .env
+```
+
 ```env
 # PostgreSQL のメジャーバージョン
 POSTGRES_VERSION=18
