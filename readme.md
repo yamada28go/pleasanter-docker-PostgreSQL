@@ -23,6 +23,7 @@ Pleasanter を PostgreSQL と一緒に Docker Compose で動かすための構�
 ### 1. 設定ファイルを用意
 
 ```bash
+cp .env.example .env
 cp .env.secrets.example .env.secrets
 ```
 
