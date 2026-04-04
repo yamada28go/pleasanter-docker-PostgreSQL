@@ -34,6 +34,8 @@ services:
         max-file: "10"
     volumes:
       - ssl_data:/var/lib/https-portal
+      # IPアドレス制限用
+      - ./dynamic-env:/var/lib/https-portal/dynamic-env
     networks:
       - pleasanter-service-network
 
