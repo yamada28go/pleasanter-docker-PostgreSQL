@@ -22,7 +22,7 @@ services:
       #  CLIENT_MAX_BODY_SIZE: 0  # これだと無制限
       CLIENT_MAX_BODY_SIZE: 500M
       # HTTP強制
-      HSTS_MAX_AGE: 60  # 秒
+      HSTS_MAX_AGE: 60 # 秒
       # ログ出力設定
       ERROR_LOG: stdout
       ACCESS_LOG: stderr
