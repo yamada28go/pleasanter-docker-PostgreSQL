@@ -53,7 +53,6 @@ require_command shfmt
 
 echo "[format] shfmt"
 shfmt -w \
-	cron-backup/config/aws-cli/S3Config.sh \
 	cron-backup/shell/common.sh \
 	cron-backup/shell/db_maintenance.sh \
 	cron-backup/shell/pg_dumpall.sh \
