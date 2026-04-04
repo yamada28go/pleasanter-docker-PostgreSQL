@@ -34,23 +34,23 @@ environment:
 
 ```yaml
 volumes:
-  - ./steveltn/https-portal/dynamic-env:/var/lib/https-portal/dynamic-env
+  - ./images/steveltn/https-portal/dynamic-env:/var/lib/https-portal/dynamic-env
 ```
 
-`steveltn/https-portal/dynamic-env` は `https-portal` の動的環境変数上書きディレクトリです。ディレクトリ内のファイル名が環境変数名、ファイル内容がその値として扱われ、更新後およそ 1 秒で設定が反映されます。
+`images/steveltn/https-portal/dynamic-env` は `https-portal` の動的環境変数上書きディレクトリです。ディレクトリ内のファイル名が環境変数名、ファイル内容がその値として扱われ、更新後およそ 1 秒で設定が反映されます。
 
-IP 制限だけを切り替えたい場合は、ホスト側で `steveltn/https-portal/dynamic-env/ACCESS_RESTRICTION` を作成します。
+IP 制限だけを切り替えたい場合は、ホスト側で `images/steveltn/https-portal/dynamic-env/ACCESS_RESTRICTION` を作成します。
 
 例:
 
 ```bash
-mkdir -p steveltn/https-portal/dynamic-env
-printf '203.0.113.10 198.51.100.0/24\n' > steveltn/https-portal/dynamic-env/ACCESS_RESTRICTION
+mkdir -p images/steveltn/https-portal/dynamic-env
+printf '203.0.113.10 198.51.100.0/24\n' > images/steveltn/https-portal/dynamic-env/ACCESS_RESTRICTION
 ```
 
 この例では、`203.0.113.10` と `198.51.100.0/24` だけを許可します。値の書式は Nginx の `allow` 相当で、個別 IP と CIDR を空白区切りで並べられます。
 
-設定を外す場合は、`steveltn/https-portal/dynamic-env/ACCESS_RESTRICTION` を空にするか削除します。
+設定を外す場合は、`images/steveltn/https-portal/dynamic-env/ACCESS_RESTRICTION` を空にするか削除します。
 
 補足:
 
@@ -74,4 +74,4 @@ docker compose -f docker-compose.yml -f docker-compose.https-portal.yml up -d
 - Let's Encrypt のドメイン認証のため、80 番ポートも必要です
 - 証明書再取得が必要な場合は `FORCE_RENEW: "true"` を一時的に使います
 - 大きなファイルを扱う場合は `CLIENT_MAX_BODY_SIZE` を調整します
-- `steveltn/https-portal/dynamic-env/ACCESS_RESTRICTION` を変更した場合は、通常はコンテナ再起動なしで反映されます
+- `images/steveltn/https-portal/dynamic-env/ACCESS_RESTRICTION` を変更した場合は、通常はコンテナ再起動なしで反映されます

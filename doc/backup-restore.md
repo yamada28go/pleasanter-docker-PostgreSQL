@@ -53,7 +53,7 @@ S3 同期は、ローカル volume 上のバックアップに加えて、外部
 - Docker ホスト外にも退避先を持つ
 - 日次バックアップを中長期保管しやすくする
 
-この処理は `cron-backup/shell/sync_to_s3.sh` が担当しており、`/var/db_backup` 配下を AWS S3 へ `aws s3 sync` します。
+この処理は `images/cron-backup/shell/sync_to_s3.sh` が担当しており、`/var/db_backup` 配下を AWS S3 へ `aws s3 sync` します。
 
 ### 何が S3 に送られるか
 

@@ -4,9 +4,9 @@ SCRIPT_DIR=$(
 	cd "$(dirname "$0")" || exit 1
 	pwd
 )
-# shellcheck source=cron-backup/shell/common.sh
+# shellcheck source=images/cron-backup/shell/common.sh
 source "${SCRIPT_DIR}/common.sh"
-# shellcheck source=cron-backup/shell/pg_rman_env.sh
+# shellcheck source=images/cron-backup/shell/pg_rman_env.sh
 source "${SCRIPT_DIR}/pg_rman_env.sh"
 
 # DBをメンテナンスする

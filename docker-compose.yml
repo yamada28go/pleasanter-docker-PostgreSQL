@@ -47,7 +47,7 @@ services:
       - -c
       - "archive_command=${POSTGRES_ARCHIVE_COMMAND:-cp %p ${POSTGRES_ARCLOG_PATH:-/var/lib/postgresql/arclog}/%f}"
     volumes:
-      - ./postgres-db/docker-entrypoint-wrapper.sh:/usr/local/bin/postgres-entrypoint-wrapper.sh:ro
+      - ./images/postgres-db/docker-entrypoint-wrapper.sh:/usr/local/bin/postgres-entrypoint-wrapper.sh:ro
       - *APP_DB_data
       - *APP_DB_arclog
     logging:
@@ -92,7 +92,7 @@ services:
   # 定期バックアップ用
   cron-backup:
     build:
-      context: cron-backup/.
+      context: images/cron-backup/.
       args:
         POSTGRES_VERSION: ${POSTGRES_VERSION:-18}
         PG_RMAN_VERSION: ${PG_RMAN_VERSION:-V1.3.19}
