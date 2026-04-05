@@ -236,3 +236,11 @@ docker compose up -d pleasanter-web
 - `pg_dumpall` 復元は SQL の再実行なので、既存状態と競合することがあります
 - 本番 DB に直接流し込む前に、可能なら別環境で一度検証してください
 - 途中で戻したくなる可能性があるため、復元直前バックアップの取得を推奨します
+
+## 補足
+
+作業途中でホストから PostgreSQL コンソールに入りたい場合は、次のように `postgres-db` コンテナ内の `psql` を起動できます。
+
+```bash
+docker compose exec postgres-db bash -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+```
