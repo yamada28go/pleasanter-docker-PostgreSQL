@@ -1,68 +1,148 @@
-version: "3.7"
-
+---
 # 共通環境変数を定義
 x-var-db-data: &APP_DB_data "db-data:/var/lib/postgresql/data"
-x-var-db-arclog: &APP_DB_arclog "db-arclog:/var/lib/postgresql/arclog"
+x-var-db-arclog: &APP_DB_arclog "db-arclog:${POSTGRES_ARCLOG_PATH:-/var/lib/postgresql/arclog}"
 
 services:
+  devtools:
+    build:
+      context: .
+      dockerfile: devtools/Dockerfile
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    profiles:
+      - extra
+
+  # DB本体
   postgres-db:
-    build: postgres/.
-    container_name: db-container
+    image: postgres:${POSTGRES_VERSION:-18}-alpine
+    entrypoint:
+      - /usr/local/bin/postgres-entrypoint-wrapper.sh
+    env_file:
+      - .env
+      - .env.secrets
+    restart: unless-stopped
+    shm_size: 1g
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=mysecretpassword1234
-      - PGPASSWORD=mysecretpassword1234
-      - POSTGRES_DB=testdb
+      - PGDATA=${POSTGRES_VOLUMES_TARGET:-/var/lib/postgresql/data}
+      - TZ=${APP_TIMEZONE:-Asia/Tokyo}
       - DATABASE_HOST=localhost
       - DB_EXTENSION=pg_trgm
-    command: 'postgres -c config_file="/etc/postgresql.conf"'
+    command:
+      - postgres
+      - -c
+      - "listen_addresses=${POSTGRES_LISTEN_ADDRESSES:-*}"
+      - -c
+      - "timezone=${APP_TIMEZONE:-Asia/Tokyo}"
+      - -c
+      - "log_timezone=${APP_TIMEZONE:-Asia/Tokyo}"
+      - -c
+      - "archive_mode=${POSTGRES_ARCHIVE_MODE:-on}"
+      - -c
+      - "wal_level=${POSTGRES_WAL_LEVEL:-replica}"
+      - -c
+      - "archive_command=${POSTGRES_ARCHIVE_COMMAND:-cp %p ${POSTGRES_ARCLOG_PATH:-/var/lib/postgresql/arclog}/%f}"
     volumes:
-      - ./postgres/init:/docker-entrypoint-initdb.d
-      - ./postgres/conf/postgresql.conf:/etc/postgresql.conf
+      - ./images/postgres-db/docker-entrypoint-wrapper.sh:/usr/local/bin/postgres-entrypoint-wrapper.sh:ro
       - *APP_DB_data
       - *APP_DB_arclog
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -h 127.0.0.1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     networks:
-      - default
       - pleasanter-service-network
+  # webサイト本体
   pleasanter-web:
+    image: implem/pleasanter:${PLEASANTER_VERSION}
+    restart: unless-stopped
+    env_file:
+      - .env.secrets
+    depends_on:
+      postgres-db:
+        condition: service_healthy
     ports:
-      - "80:80"
-    build:
-      context: pleasanter/.
-      args:
-        # バージョンを指定
-        # 1.1.3.2 : cea284d8c57f4794da821c76d5676d0078b30ae0
-        #- GIT_HASH=cea284d8c57f4794da821c76d5676d0078b30ae0
-        # 1.1.5.1 : a7d57848b3d3fbd2b72389988455c14ab7347b25
-        # 1.1.7.0 : 550d0f37b36c606c78331d3ada77504866ef43a4
-        # 1.1.11.0 : ef64b29dc7321c58f6f8d2fa0b4b23b0f6a8b23e
-        - GIT_HASH=ef64b29dc7321c58f6f8d2fa0b4b23b0f6a8b23e
+      - "127.0.0.1:50001:8080"
+    # ports:
+    #   # https-portalと被らないようにドメインを分ける
+    #   - "8081:80"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
+    # volumes:
+    #   - ./pleasanter/parameters:/var/opt/parameters
     networks:
-      - default
       - pleasanter-service-network
+
+  # 定期バックアップ用
   cron-backup:
     build:
-      context: cron-backup/.
+      context: images/cron-backup/.
+      args:
+        POSTGRES_VERSION: ${POSTGRES_VERSION:-18}
+        PG_RMAN_VERSION: ${PG_RMAN_VERSION:-V1.3.19}
+    restart: unless-stopped
+    env_file:
+      - .env
+      - .env.secrets
+    environment:
+      - TZ=${APP_TIMEZONE:-Asia/Tokyo}
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
     volumes:
       - *APP_DB_data
       - *APP_DB_arclog
       # 自動バックアップされた結果は「/var/db_backup」に格納される。
       # コンテナの外からアクセスする場合は、このパスを外から見える所に配置しておく
       - db-backup:/var/db_backup
-      # S3で自動バックアップする場合
-      # aws cliの設定を以下パスに行う。
-      # 存在しない場合はバックアップは行われない
-      #- ./cron-backup/config/aws-cli:/root/.aws/
+    networks:
+      - pleasanter-service-network
 
+  # DB定義更新
+  codedefiner:
+    image: implem/pleasanter:codedefiner
+    env_file:
+      - .env.secrets
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - pleasanter-service-network
+    # このサービスをデフォルトで起動させないように profiles を指定する
+    #
+    # [参考]
+    # docker-compose up で一部のサービスを除外する方法
+    # https://gotohayato.com/content/505/
+    profiles:
+      - extra
 volumes:
   db-data:
     driver: local
     # Compose の外ですでに作成済みの volume を指定する場合は ture を設定する。
     # そうすると、 docker-compose up 時に Compose は volume を作成しようとしません。
     # かつ、指定した volume が存在しないとエラーを raise します。
-    #external: true
+    # external: true
   db-arclog:
     driver: local
     # dbのバックアップ領域
@@ -73,4 +153,3 @@ networks:
   # 他のcomposerと連携できるように、
   # ネットワーク名を明示的に設定する
   pleasanter-service-network:
-

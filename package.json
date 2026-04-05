@@ -1,0 +1,8 @@
+{
+  "name": "pleasanter-docker-postgresql",
+  "private": true,
+  "devDependencies": {
+    "markdownlint-cli2": "^0.18.1",
+    "prettier": "^3.6.0"
+  }
+}

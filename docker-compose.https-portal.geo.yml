@@ -1,0 +1,15 @@
+---
+
+# HTTPS 側だけ日本向けIPレンジ制限を追加する設定。
+# Let's Encrypt の HTTP-01 検証を壊さないよう、HTTP server block には制限を掛けない。
+services:
+  https-portal:
+    environment:
+      CUSTOM_NGINX_GLOBAL_HTTP_CONFIG_BLOCK: |
+        include /var/lib/https-portal/jp.nginx-geo.txt;
+      CUSTOM_NGINX_SERVER_CONFIG_BLOCK: |
+        if ($$ipv4_jp = 0) {
+          return 403;
+        }
+    volumes:
+      - ./images/steveltn/https-portal/jp.nginx-geo.txt:/var/lib/https-portal/jp.nginx-geo.txt:ro
