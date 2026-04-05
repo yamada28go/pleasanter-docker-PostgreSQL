@@ -174,6 +174,7 @@ docker compose exec cron-backup bash -lc 'source /var/backup_sh/pg_rman_env.sh &
 - `pleasanter-web` を停止して DB 更新を止める
 - 必要なら復元直前の `pg_dumpall` を取得する
 - 対象の `.7z` を `ZIP_PASSWORD` で展開する
+- 外部で取得したプレーン SQL ダンプ (`.sql`) を使う場合は `docker compose exec -T postgres-db ... psql ... < backup.sql` の形で流し込む
 - 接続状況を確認し、必要なら既存接続を切断する
 - 展開した SQL を PostgreSQL に流し込む
 - 最後に `pleasanter-web` を再起動する
