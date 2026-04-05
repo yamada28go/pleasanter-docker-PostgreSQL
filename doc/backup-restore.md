@@ -30,17 +30,15 @@ PITR は、日次のフルバックアップを起点に、その後の差分バ
 | `pg_rman` INCREMENTAL | 日中の差分バックアップ                  | ローカル volume                        | 同日内の細かい時点復旧に使います                |
 | `pg_dumpall`          | DB 全体の退避、別環境への移行、最終退避 | ローカル volume と必要に応じた外部保管 | PITR とは別系統の保険です                       |
 
-S3 への保管方針としては、日次のフルバックアップを長めに保持するバックアップとして扱う想定です。
-一方で、短期保持用のバックアップ領域へは同じ内容を二重に同期しない前提としています。
+S3 への保管方針としては、`pg_dumpall` による論理バックアップを長めに保持する前提です。
+つまり、素早い復旧に使う PITR 用バックアップはローカルに置き、外部保管は `dumpall` を中心に行います。
 
-つまり運用イメージは次のとおりです。
+運用イメージは次のとおりです。
 
 - ローカル:
   - 直近の FULL / INCREMENTAL / WAL を保持して、素早く PITR できるようにする
 - S3:
-  - 日次フルバックアップを退避して、中長期の保管先とする
-- 短期バックアップ領域:
-  - ローカルの即時復旧用途を優先し、S3 上のフルバックアップと重複運用しない
+  - `pg_dumpall` バックアップを退避して、中長期の保管先とする
 
 ## S3 同期
 
@@ -53,24 +51,15 @@ S3 同期は、ローカル volume 上のバックアップに加えて、外部
 - Docker ホスト外にも退避先を持つ
 - 日次バックアップを中長期保管しやすくする
 
-この処理は `images/cron-backup/shell/sync_to_s3.sh` が担当しており、`/var/db_backup` 配下を AWS S3 へ `aws s3 sync` します。
+この処理は `images/cron-backup/shell/sync_to_s3.sh` が担当しており、現状は `pg_dumpall.sh` から呼ばれる `dumpall` ディレクトリの同期に使っています。
 
 ### 何が S3 に送られるか
 
 同期先は次の形式です。
 
-- `s3://<S3_TARGET_BUCKET_NAME>/<S3_TARGET_DIRECTORY_NAME>/<category>`
+- `s3://<S3_TARGET_BUCKET_NAME>/<S3_TARGET_DIRECTORY_NAME>/dumpall`
 
-この `<category>` には、呼び出し元から `dumpall`, `PITR`, `syslog` などが渡されます。
-
-現状の実装では次のようになっています。
-
-- `pg_dumpall.sh`
-  - `sync_to_s3.sh dumpall false` を呼ぶため、`dumpall` バックアップは S3 同期可能です
-- `pg_rman.sh`
-  - S3 同期呼び出しの記述はありますが、現状はコメントアウトされているため `PITR` バックアップはデフォルトでは S3 同期されません
-- `syslogs_maintenance.sh`
-  - `sync_to_s3.sh syslog false` を呼びますが、cron 自体がコメントアウトされているため現状は自動実行されません
+現状の実装では、`pg_dumpall.sh` が `sync_to_s3.sh dumpall false` を呼ぶため、`dumpall` バックアップだけが S3 同期されます。
 
 ### 有効化条件
 
@@ -119,8 +108,6 @@ S3_TARGET_DIRECTORY_NAME=DB_Backup
 
 - すべてのジョブは `flock` で排他制御され、同時実行を避けています
 - `pg_dumpall.sh` は末尾で `sync_to_s3.sh dumpall false` を呼ぶため、S3 設定が有効なら `dumpall` バックアップを S3 同期します
-- `pg_rman.sh` の S3 同期呼び出しは現状コメントアウトされているため、`PITR` バックアップはデフォルトでは S3 同期されません
-- `syslogs_maintenance.sh` では `sync_to_s3.sh syslog false` を呼びますが、cron 自体がコメントアウトされているため現状は自動実行されません
 
 ## バックアップ
 
@@ -156,10 +143,6 @@ docker compose exec cron-backup flock --timeout=300 /tmp/db_backup.lock /var/bac
 ```bash
 docker compose exec cron-backup bash -lc 'source /var/backup_sh/pg_rman_env.sh && pg_rman show'
 ```
-
-補足:
-
-- `pg_rman.sh` には S3 同期呼び出しの記述がありますが、現状はコメントアウトされているため `PITR` バックアップは自動では S3 同期されません
 
 ## 復元
 
