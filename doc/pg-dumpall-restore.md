@@ -65,22 +65,33 @@ docker compose exec postgres-db bash -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES
 - ロールや他の DB は削除しません
 - `pg_dumpall` の内容に `CREATE DATABASE "Implem.Pleasanter"` が含まれている前提です
 
-### 4. バックアップ対象ファイルの一覧を確認
+### 4. 復元に使うファイル形式を確認
 
-まず、`dumpall` 配下にあるバックアップファイルを確認します。
+まず、どの形式のバックアップを復元するかを確認します。
+
+- この構成で取得した `.7z`
+  - 次の手順で展開してから SQL を流し込みます
+- 外部で取得したプレーン SQL ダンプ (`.sql`)
+  - `.7z` 展開は不要で、後続手順でそのまま流し込みます
+
+この構成で取得したバックアップを使う場合は、`dumpall` 配下の対象ファイルを確認します。
 (更新日時順に確認)
 
 ```bash
 docker compose exec cron-backup bash -lc 'find /var/db_backup/dumpall -type f -exec ls -lht {} +'
 ```
 
-### 5. 対象の `.7z` を展開
+### 5. `.7z` バックアップを使う場合は展開
+
+#### 5-1. `dumpall` 配下の `.7z` を展開
 
 ```bash
 docker compose exec cron-backup bash -lc '7z x /var/db_backup/dumpall/backup.7z -p"$ZIP_PASSWORD" -o/var/db_backup/restore'
 ```
 
-ホスト上の外部ファイルを使う場合は、一時的にマウントして展開できます。
+#### 5-2. ホスト上にある外部の `.7z` を展開
+
+外部から持ち込んだ `.7z` を使う場合は、一時的にマウントして展開できます。
 
 サンプル:
 
@@ -92,6 +103,8 @@ docker compose run --rm --no-deps \
 ```
 
 この例では、ホスト側の `/path/to/backup/backup.7z` をコンテナ内の `/mnt/backup/backup.7z` として参照しています。
+
+この手順で展開した後は、後続の「SQL を流し込む」手順を使います。
 
 ### 6. PostgreSQL への接続を止める
 
@@ -129,7 +142,11 @@ docker compose exec postgres-db bash -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES
 
 ### 7. SQL を流し込む
 
-展開した SQL を `cron-backup` コンテナから PostgreSQL に流し込みます。
+ここでは、復元元の形式に応じて投入方法を選びます。
+
+#### 7-1. 展開済み SQL を `cron-backup` から流し込む
+
+前段で `.7z` を展開して SQL ファイルを用意した場合は、展開済み SQL を `cron-backup` コンテナから PostgreSQL に流し込みます。
 
 ```bash
 docker compose exec cron-backup bash -lc 'source /var/backup_sh/pg_rman_env.sh && psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /path/to/backup.sql'
@@ -137,7 +154,7 @@ docker compose exec cron-backup bash -lc 'source /var/backup_sh/pg_rman_env.sh &
 
 `cron-backup` コンテナ内で参照できる SQL を流す例です。`/path/to/backup.sql` は実際のファイルに置き換えてください。
 
-ホスト上の SQL を一時マウントして流し込むサンプル:
+ホスト上にある展開済み SQL を一時マウントして流し込むサンプル:
 
 ```bash
 docker compose run --rm --no-deps \
@@ -147,6 +164,29 @@ docker compose run --rm --no-deps \
 ```
 
 この例では、ホスト側の `/path/to/restore/backup.sql` を `cron-backup` コンテナ内の `/mnt/restore/backup.sql` として読み込み、そこから `postgres-db` へ接続しています。
+
+#### 7-2. 外部のプレーン SQL ダンプ (`.sql`) をそのまま流し込む
+
+外部で取得したプレーンテキスト形式の `.sql` ダンプが手元にある場合は、`postgres-db` に対して標準入力で直接流し込みます。
+
+```bash
+docker compose exec -T postgres-db bash -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < /path/to/dump.sql
+```
+
+補足:
+
+- `-T` は標準入力を流し込むために付けます
+- `< /path/to/dump.sql` はホスト側ファイルを読む指定です
+- この方法はプレーンテキスト形式の `.sql` ダンプ向けです
+- `pg_restore: input file appears to be a text format dump. Please use psql.` と表示された場合は、`pg_restore` ではなくこの `psql` 形式を使ってください
+
+投入先 DB を明示したい場合の例:
+
+```bash
+docker compose exec -T postgres-db bash -lc 'psql -U "$POSTGRES_USER" -d Implem.Pleasanter' < /path/to/dump.sql
+```
+
+一方で、`.dump` や `.backup` のようなカスタム形式ダンプは `psql` ではなく `pg_restore` を使います。
 
 ### 8. Pleasanter を再起動
 
@@ -164,16 +204,30 @@ docker compose up -d pleasanter-web
 
 ## コマンド例まとめ
 
+共通手順:
+
 ```bash
 docker compose stop pleasanter-web
 docker compose exec cron-backup flock --timeout=600 /tmp/db_backup.lock /var/backup_sh/pg_dumpall.sh
 docker compose exec postgres-db bash -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select pg_terminate_backend(pid) from pg_stat_activity where pid <> pg_backend_pid() and datname = '\''Implem.Pleasanter'\'';"'
 docker compose exec postgres-db bash -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "drop database if exists \"Implem.Pleasanter\";"'
-docker compose exec cron-backup bash -lc 'find /var/db_backup/dumpall -type f -exec ls -lht {} +'
-docker compose exec cron-backup bash -lc '7z x /var/db_backup/dumpall/backup.7z -p"$ZIP_PASSWORD" -o/var/db_backup/restore'
 docker compose exec postgres-db bash -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select pid, usename, datname, state, query from pg_stat_activity order by pid;"'
 docker compose exec postgres-db bash -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "select pg_terminate_backend(pid) from pg_stat_activity where pid <> pg_backend_pid() and datname = '\''$POSTGRES_DB'\'';"'
+```
+
+この構成で取得した `.7z` バックアップを復元する場合:
+
+```bash
+docker compose exec cron-backup bash -lc 'find /var/db_backup/dumpall -type f -exec ls -lht {} +'
+docker compose exec cron-backup bash -lc '7z x /var/db_backup/dumpall/backup.7z -p"$ZIP_PASSWORD" -o/var/db_backup/restore'
 docker compose exec cron-backup bash -lc 'source /var/backup_sh/pg_rman_env.sh && psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f /path/to/backup.sql'
+docker compose up -d pleasanter-web
+```
+
+外部のプレーン SQL ダンプ (`.sql`) を復元する場合:
+
+```bash
+docker compose exec -T postgres-db bash -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < /path/to/dump.sql
 docker compose up -d pleasanter-web
 ```
 
@@ -182,3 +236,11 @@ docker compose up -d pleasanter-web
 - `pg_dumpall` 復元は SQL の再実行なので、既存状態と競合することがあります
 - 本番 DB に直接流し込む前に、可能なら別環境で一度検証してください
 - 途中で戻したくなる可能性があるため、復元直前バックアップの取得を推奨します
+
+## 補足
+
+作業途中でホストから PostgreSQL コンソールに入りたい場合は、次のように `postgres-db` コンテナ内の `psql` を起動できます。
+
+```bash
+docker compose exec postgres-db bash -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+```
